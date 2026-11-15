@@ -1,8 +1,28 @@
 {
     "name": "thebeardedbear/urssaf-mobilite-internationale",
     "description": "Client and domain model for the URSSAF \"API Mobilité internationale\" (posting of workers within the EEA)",
-    "license": "proprietary",
+    "license": "MIT",
     "type": "symfony-bundle",
+    "keywords": [
+        "urssaf",
+        "api",
+        "mobilite-internationale",
+        "detachement",
+        "certificat-a1",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "TheBeardedBear",
+            "homepage": "https://github.com/TheBeardedBearSAS"
+        }
+    ],
+    "homepage": "https://github.com/TheBeardedBearSAS/urssaf-mobilite-internationale",
+    "support": {
+        "issues": "https://github.com/TheBeardedBearSAS/urssaf-mobilite-internationale/issues",
+        "source": "https://github.com/TheBeardedBearSAS/urssaf-mobilite-internationale",
+        "security": "https://github.com/TheBeardedBearSAS/urssaf-mobilite-internationale/security/policy"
+    },
     "require": {
         "php": ">=8.2"
     },
