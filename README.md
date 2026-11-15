@@ -28,7 +28,7 @@ OAuth2 client credentials, scope `ods.dlagd`, base URL `https://api.urssaf.fr/ti
 - [docs/api-reference.md](docs/api-reference.md) — technical reference (single source of truth for the package).
 - [docs/roadmap.md](docs/roadmap.md) — planned architecture and order of work.
 - [docs/openapi/](docs/openapi/) — official OpenAPI contract(s) from the URSSAF API portal (production and sandbox).
-- [docs/reference/](docs/reference/) — official URSSAF documentation.
+- `docs/reference/` — official URSSAF documentation: not versioned (URSSAF documents), download it from the links in [docs/api-reference.md](docs/api-reference.md) into this local, git-ignored folder.
 - Catalogue page: https://portailapi.urssaf.fr/fr/catalogue-api/prd/mobi
 
 ## Requirements
