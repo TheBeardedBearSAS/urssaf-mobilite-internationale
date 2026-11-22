@@ -320,7 +320,9 @@ jobs:
           fi
 
   # Manual only: Actions > CI > Run workflow > "contract". Repository secrets URSSAF_SANDBOX_CLIENT_ID and
-  # URSSAF_SANDBOX_CLIENT_SECRET are required; URSSAF_SANDBOX_BASE_URI is an optional repository variable.
+  # URSSAF_SANDBOX_CLIENT_SECRET are required; URSSAF_SANDBOX_BASE_URI and URSSAF_SANDBOX_TOKEN_URI are optional repository
+  # variables. The sandbox data (enrolment and posting companies, dossier number) are optional: a test whose data is
+  # missing is skipped, and the posting is never sent without them (README, "Sandbox contract tests").
   contract:
     name: contract (URSSAF sandbox)
     if: github.event_name == 'workflow_dispatch' && inputs.contract
@@ -337,3 +339,11 @@ jobs:
           URSSAF_SANDBOX_CLIENT_ID: ${{ secrets.URSSAF_SANDBOX_CLIENT_ID }}
           URSSAF_SANDBOX_CLIENT_SECRET: ${{ secrets.URSSAF_SANDBOX_CLIENT_SECRET }}
           URSSAF_SANDBOX_BASE_URI: ${{ vars.URSSAF_SANDBOX_BASE_URI }}
+          URSSAF_SANDBOX_TOKEN_URI: ${{ vars.URSSAF_SANDBOX_TOKEN_URI }}
+          URSSAF_SANDBOX_ENROLMENT_SIREN: ${{ secrets.URSSAF_SANDBOX_ENROLMENT_SIREN }}
+          URSSAF_SANDBOX_ENROLMENT_NIC: ${{ secrets.URSSAF_SANDBOX_ENROLMENT_NIC }}
+          URSSAF_SANDBOX_ENROLMENT_CATEGORY: ${{ vars.URSSAF_SANDBOX_ENROLMENT_CATEGORY }}
+          URSSAF_SANDBOX_POSTING_SIREN: ${{ secrets.URSSAF_SANDBOX_POSTING_SIREN }}
+          URSSAF_SANDBOX_POSTING_NIC: ${{ secrets.URSSAF_SANDBOX_POSTING_NIC }}
+          URSSAF_SANDBOX_POSTING_EXTERNAL_ACCOUNT: ${{ secrets.URSSAF_SANDBOX_POSTING_EXTERNAL_ACCOUNT }}
+          URSSAF_SANDBOX_DOSSIER_ID: ${{ secrets.URSSAF_SANDBOX_DOSSIER_ID }}

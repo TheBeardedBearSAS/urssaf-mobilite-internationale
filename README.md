@@ -56,7 +56,7 @@ make install     # build the image, install dependencies
 make ci          # full quality gate: cs, rector, phpstan, mago, deptrac, composer checks, hadolint, guard, coverage, infection
 make test        # unit + functional tests
 make coverage-branches  # branch coverage (Xdebug, slow), at least 96 %
-make bench       # benchmarks (PHPBench, tests/Benchmark), added with the implementation
+make bench       # benchmarks (PHPBench, tests/Benchmark)
 make help        # every target
 ```
 
@@ -66,6 +66,33 @@ Once the repository is public, `main` publishes its quality proofs, linked from 
 coverage report on Codecov, the full mutation report on the Stryker Dashboard, the SonarQube Cloud quality gate and the
 OpenSSF Scorecard. The benchmarks (`tests/Benchmark`, PHPBench in `tools/phpbench`, out of the package dependencies)
 run on every pull request against the base commit, and the job fails on a regression of more than 20 %.
+
+### Sandbox contract tests
+
+The tests of `tests/Contract` (suite and group `contract`) call the real URSSAF sandbox. They are opt-in: outside the
+default run, outside the coverage and mutation gates, and skipped while `URSSAF_SANDBOX_CLIENT_ID` and
+`URSSAF_SANDBOX_CLIENT_SECRET` are not set. No real identifier and no recorded response is committed.
+
+```sh
+export URSSAF_SANDBOX_CLIENT_ID=... URSSAF_SANDBOX_CLIENT_SECRET=...
+make test-contract
+```
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `URSSAF_SANDBOX_CLIENT_ID`, `URSSAF_SANDBOX_CLIENT_SECRET` | yes | OAuth2 client credentials of the sandbox; without them the whole suite is skipped |
+| `URSSAF_SANDBOX_BASE_URI` | no | replaces the API base URI (path included, `https` only) |
+| `URSSAF_SANDBOX_TOKEN_URI` | no | replaces the OAuth2 token URI: the sandbox token host is not published |
+| `URSSAF_SANDBOX_ENROLMENT_SIREN` | no | SIREN to enrol: without it the enrolment life-cycle (request, list, get, delete) is skipped |
+| `URSSAF_SANDBOX_ENROLMENT_NIC`, `URSSAF_SANDBOX_ENROLMENT_CATEGORY` | no | NIC (5 characters) and category of that enrolment (default `RG`) |
+| `URSSAF_SANDBOX_POSTING_SIREN`, `URSSAF_SANDBOX_POSTING_NIC` | no | company whose enrolment is validated: without both, **no posting is sent** (the test is skipped) |
+| `URSSAF_SANDBOX_POSTING_EXTERNAL_ACCOUNT` | no | external account number (18 digits) of that company |
+| `URSSAF_SANDBOX_DOSSIER_ID` | no | dossier number (UUID): without it the certificate test of an existing dossier is skipped |
+
+The enrolment and the posting are real calls on your sandbox (the enrolment is deleted at the end of its test); the
+people, contacts and addresses of the posting are the synthetic values of the unit tests. In the CI, the manual job
+`contract` (Actions > CI > Run workflow, `contract` checked) reads the same variables from the `urssaf-sandbox`
+environment (secrets for the credentials and the identifiers, repository variables for the URIs and the category).
 
 ## Versioning
 

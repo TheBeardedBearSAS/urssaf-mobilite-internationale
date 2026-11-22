@@ -49,7 +49,10 @@ test-functional: ## Run functional tests
 	$(PHP) vendor/bin/phpunit --testsuite=functional
 
 test-contract: ## Run live sandbox contract tests (needs URSSAF_SANDBOX_CLIENT_ID/SECRET, see README)
-	docker compose run --rm -e URSSAF_SANDBOX_CLIENT_ID -e URSSAF_SANDBOX_CLIENT_SECRET -e URSSAF_SANDBOX_BASE_URI -e URSSAF_SANDBOX_TOKEN_URI php vendor/bin/phpunit --testsuite=contract
+	docker compose run --rm -e URSSAF_SANDBOX_CLIENT_ID -e URSSAF_SANDBOX_CLIENT_SECRET -e URSSAF_SANDBOX_BASE_URI -e URSSAF_SANDBOX_TOKEN_URI \
+		-e URSSAF_SANDBOX_ENROLMENT_SIREN -e URSSAF_SANDBOX_ENROLMENT_NIC -e URSSAF_SANDBOX_ENROLMENT_CATEGORY \
+		-e URSSAF_SANDBOX_POSTING_SIREN -e URSSAF_SANDBOX_POSTING_NIC -e URSSAF_SANDBOX_POSTING_EXTERNAL_ACCOUNT \
+		-e URSSAF_SANDBOX_DOSSIER_ID php vendor/bin/phpunit --testsuite=contract
 
 coverage: ## Coverage (pcov): text + clover + html in var/coverage, enforce 100% lines/methods/classes
 	$(PHP) vendor/bin/phpunit $(UNIT_FUNCTIONAL) --coverage-text --coverage-clover var/coverage/clover.xml --coverage-html var/coverage/html --coverage-xml var/coverage/coverage-xml --log-junit var/coverage/junit.xml
