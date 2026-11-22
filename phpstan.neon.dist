@@ -34,6 +34,7 @@ parameters:
                 - DomainException
                 - LogicException
                 - RuntimeException
+                - TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\DomainException
                 # Framework extension points without an interface alternative (bridges only).
                 - Doctrine\DBAL\Types\Type
                 - Symfony\Component\HttpKernel\Bundle\AbstractBundle
