@@ -1,6 +1,6 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
-    # phpstan-strict-rules, -deprecation-rules, -phpunit, -symfony, -doctrine,
+    # phpstan-strict-rules, -deprecation-rules, -phpunit, -symfony,
     # shipmonk/phpstan-rules, ergebnis/phpstan-rules and tomasvotruba/type-coverage
     # are registered automatically by phpstan/extension-installer.
 
@@ -36,7 +36,6 @@ parameters:
                 - RuntimeException
                 - TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\DomainException
                 # Framework extension points without an interface alternative (bridges only).
-                - Doctrine\DBAL\Types\Type
                 - Symfony\Component\HttpKernel\Bundle\AbstractBundle
                 - Symfony\Component\Console\Command\Command
                 - Symfony\Component\HttpKernel\Kernel

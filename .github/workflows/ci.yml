@@ -135,6 +135,39 @@ jobs:
           dependencies: ${{ matrix.dependencies }}
       - run: vendor/bin/phpunit --testsuite=unit,functional
 
+  # Symfony 8.x needs PHP 8.4 or later: the highest dependencies resolve to it there. The job asserts the resolved major,
+  # so that it can never silently run the tests on Symfony 7.4 (the `tests` job covers 6.4 and 7.x).
+  tests-symfony8:
+    name: tests (Symfony 8, PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    # PHP 8.5 is not a supported runtime yet: its job may fail without failing the workflow.
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4']
+        experimental: [false]
+        include:
+          - { php: '8.5', experimental: true }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+        with:
+          php-version: ${{ matrix.php }}
+          dependencies: highest
+      # composer-require-checker (a quality gate, not used by the tests) caps symfony/console at 7.x, which keeps
+      # framework-bundle on 7.4: without it the resolution moves to 8.x. The quality gates run in the other jobs.
+      - name: Resolve Symfony 8
+        run: |
+          composer remove --dev maglnet/composer-require-checker --no-interaction --no-progress
+          composer update --no-interaction --no-progress
+      - name: Symfony 8 is installed
+        run: |
+          for package in symfony/framework-bundle symfony/console symfony/dependency-injection symfony/http-kernel; do
+            composer show "$package" | grep -E '^versions +: \* v?8\.' || { echo "$package is not on Symfony 8"; exit 1; }
+          done
+      - run: vendor/bin/phpunit --testsuite=unit,functional
+
   # 100 % lines / methods / classes over the whole of src (unit + functional suites).
   coverage:
     name: coverage

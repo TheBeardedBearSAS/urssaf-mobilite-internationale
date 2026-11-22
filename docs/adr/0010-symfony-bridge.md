@@ -45,5 +45,20 @@ published.
 ## Consequences
 
 - Installing this bundle next to the CESU, PAJE or auto-entrepreneur bundle needs no extra configuration.
-- Documented in `docs/symfony.md`, `docs/standalone.md` and `docs/testing.md`. The roadmap still says
-  `urssaf:mobility:*` and must be updated in the documentation lot.
+- Documented in `docs/symfony.md`, `docs/standalone.md` and `docs/testing.md`.
+
+## Amendments
+
+- **2026-11-22 (Symfony bridge lot).**
+  - Decision 1: service ids, the container parameter (`urssaf_mi.tenants`) and the diagnostic tag
+    (`urssaf_mi.installation_check`) are prefixed `urssaf_mi.`, like the cache keys and the Monolog channel; only the
+    bundle alias and the translation domain keep the long name `urssaf_mobilite_internationale`.
+  - Decision 2: a client secret must be an `%env(...)%` placeholder (a literal secret is refused at build time); an empty
+    `base_uri` / `token_uri` (an empty variable) means "not overridden" and the recipe reads them with
+    `%env(default::...)%`; the `user_agent` and `headers.request_id` keys of `ApiConfiguration` are exposed.
+  - Decision 3: every command accepts `--show-urssaf-errors` (ADR 0006); `urssaf:mi:certificate` exits with `3` when the
+    certificate is not available yet (`CertificateInProgress`), `1` for `CertificateRefusedOrUnknown` and every failure,
+    `2` for an invalid usage, and refuses an existing output file unless `--force` (ADR 0005); `urssaf:mi:enrolment:request`
+    takes the required `--category` option. The failures printed by the commands are translated when a translator exists.
+  - Decision 6: `urssaf:mi:check` has a `configuration` check (an invalid runtime-resolved option is a failed check, not a
+    stack trace), and the token store check warns while the shared `cache.app` pool is used.

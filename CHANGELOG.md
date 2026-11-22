@@ -17,8 +17,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   and a SLSA build provenance attestation (`*.intoto.jsonl`, Sigstore); see *Verifying a release* in SECURITY.md.
 - CodeQL analysis of the GitHub Actions workflows (workflow `codeql.yml`) on every pull request and push to `main`.
 
+- Symfony bundle (`UrssafMobiliteInternationaleBundle`, alias `urssaf_mobilite_internationale`, Symfony 6.4, 7.x and 8.x,
+  stateless: no Messenger, Lock, Scheduler nor Doctrine): configuration tree (environment, overridable `https` base and
+  token URIs, environment-variable credentials, token cache pool, simulated gateway refused in production, certificate
+  400 handling, PDF telework rules, opt-in rate limiter), `urssaf:mi:*` console commands (`check`, `enrolment:request`,
+  `enrolment:list`, `enrolment:show`, `enrolment:delete`, `certificate`), installation diagnostics, English / French
+  translations of the violation codes, Flex recipe (`URSSAF_MI_*` variables) and `bin/build-flex-endpoint`
+  (`docs/symfony.md`, ADR 0010). Symfony 8 joins the CI matrix on PHP 8.4.
+
 ### Changed
 
+- The Doctrine, Lock and Messenger development dependencies are gone (the package is stateless); the Deptrac
+  `DoctrineBridge` layer stays (ADR 0000 row 15).
 - Open-source silver level, aligned on the reference package: `GOVERNANCE.md`, `CODE_OF_CONDUCT.md`, `ROADMAP.md`,
   security assurance case (`docs/security/assurance-case.md`), DCO sign-off (`bin/check-dco`, CI job `dco`),
   documented test policy and code review in `CONTRIBUTING.md`, SPDX licence headers on every source file

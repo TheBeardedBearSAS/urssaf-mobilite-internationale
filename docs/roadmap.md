@@ -49,7 +49,8 @@ Doctrine bridges, 100 % coverage and MSI).
 
 - Symfony bundle `UrssafMobiliteInternationaleBundle` (alias `urssaf_mobilite_internationale`): configuration
   (credentials, environment, base URI, token URI), HTTP client, token cache pool, console commands
-  `urssaf:mobility:enrolment:request|list|show|delete` and `urssaf:mobility:certificate <id> <output-file>`.
+  `urssaf:mi:enrolment:request|list|show|delete`, `urssaf:mi:certificate <dossierId> <output-file>` and `urssaf:mi:check`
+  ([symfony.md](symfony.md), ADR 0010).
 - Doctrine bridge: optional, only if the package must **track** its own posting requests and enrolments (store the
   `idEnrolement`, the declaration `id`, the status and last certificate state; the API offers no listing of postings,
   so the dossier id returned by the declaration is the only handle). Not needed for a first release; personal data

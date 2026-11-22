@@ -1,0 +1,33 @@
+# URSSAF "API Mobilité internationale": every option is described in the docs/symfony.md file of the package.
+urssaf_mobilite_internationale:
+    environment: '%env(URSSAF_MI_ENV)%'      # sandbox | production
+
+    # Overrides of the URSSAF hosts, https only (the sandbox token host is not published; a mock server needs TLS).
+    # Empty (the default of the .env entries): the URSSAF host of the environment.
+    base_uri: '%env(default::URSSAF_MI_BASE_URI)%'
+    token_uri: '%env(default::URSSAF_MI_TOKEN_URI)%'
+
+    # One entry per OAuth2 account (tenant); or "credentials_provider: <service id>" to read them from a vault or a database.
+    # The client secret must be an environment variable (or a secret), never written here.
+    credentials:
+        default:
+            client_id: '%env(URSSAF_MI_CLIENT_ID)%'
+            client_secret: '%env(URSSAF_MI_CLIENT_SECRET)%'
+
+    # The access tokens should be shared by every process (web, workers, crons): declare a dedicated pool, e.g.
+    #   framework.cache.pools.urssaf_mi.token_cache: { adapter: cache.adapter.redis, provider: '%env(REDIS_DSN)%' }
+    # token_store: { cache_pool: urssaf_mi.token_cache }
+
+    # A 400 on the certificate download means "not available yet" by default (docs/adr/0003).
+    # certificate: { bad_request_as_in_progress: true }
+
+    # Also apply the PDF telework rules before every posting (docs/adr/0008).
+    # validation: { pdf_telework_rules: true }
+
+    # Client-side throttling at the published quota of 200 requests per minute, per process (off by default).
+    # rate_limiter: { enabled: true }
+
+when@test:
+    urssaf_mobilite_internationale:
+        # The in-memory URSSAF platform of the package: nothing is sent to URSSAF (docs/testing.md).
+        gateway: { simulated: true }
