@@ -28,6 +28,16 @@ final readonly class Psr7BinaryStream implements BinaryStream
 
     public function __construct(private StreamInterface $body, private StreamFactoryInterface $streamFactory) {}
 
+    /**
+     * The certificate is personal data: the stream is not dumped (ADR 0006).
+     *
+     * @return array<string, string>
+     */
+    public function __debugInfo(): array
+    {
+        return ['body' => '***'];
+    }
+
     public function read(int $length): string
     {
         return $this->body->read($length);
@@ -45,7 +55,12 @@ final readonly class Psr7BinaryStream implements BinaryStream
 
         try {
             while (!$this->body->eof()) {
-                $copied += $target->write($this->body->read(self::CHUNK_SIZE));
+                $chunk = $this->body->read(self::CHUNK_SIZE);
+                // A stream that is not at its end but has nothing to give (non-blocking source) must not spin forever.
+                if ($chunk === '') {
+                    break;
+                }
+                $copied += $target->write($chunk);
             }
         } finally {
             $target->detach();

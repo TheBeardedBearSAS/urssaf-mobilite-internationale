@@ -119,7 +119,7 @@ final class BundleConfiguration
                 ->arrayNode('rate_limiter')
                     ->addDefaultsIfNotSet()
                     ->children()
-                        ->booleanNode('enabled')->defaultFalse()->info('Enforces the published quota (200 requests per minute) per tenant and operation in the current process.')->end()
+                        ->booleanNode('enabled')->defaultFalse()->info('Enforces the published quota (200 requests per minute for the whole API) per tenant, all operations together, in the current process.')->end()
                     ->end()
                 ->end()
             ->end();

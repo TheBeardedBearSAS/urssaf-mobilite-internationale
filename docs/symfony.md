@@ -43,7 +43,9 @@ composer require symfony/framework-bundle symfony/console symfony/http-client ny
 ```
 
 `symfony/http-client` and `nyholm/psr7` provide the default PSR-18 client and the PSR-17 factories; you can use another
-PSR-18 client (see `http_client`). Add `symfony/translation` to translate the violation messages and the failures
+PSR-18 client (see `http_client`); the default client is created with `max_redirects: 0`, and a client of your own must
+**neither follow redirects nor retry** (a followed 307 / 308 replays the `POST` with the declaration and the secret to
+another URL; [ADR 0002](adr/0002-http-client-adaptations.md), Amendments). Add `symfony/translation` to translate the violation messages and the failures
 printed by the commands (English and French are shipped). Register the bundle in `config/bundles.php`:
 
 ```php
@@ -93,7 +95,7 @@ The configuration tree is defined in `Bridge\Symfony\DependencyInjection\BundleC
 | `gateway.simulated` | bool | `false` | Tests only: replaces the URSSAF API with the in-memory `Testing\SimulatedMobilityGateway`, exposed as a public service to script the scenarios (see [testing.md](testing.md)). Refused with `production` (see below). |
 | `certificate.bad_request_as_in_progress` | bool | `true` | A 400 on the certificate download means "not available yet" (a package choice, [ADR 0003](adr/0003-certificate-result.md)); `false`: it is an `UrssafRequestRejected`. |
 | `validation.pdf_telework_rules` | bool | `false` | Also applies the PDF telework rules before every posting ([ADR 0008](adr/0008-local-validation.md)). |
-| `rate_limiter.enabled` | bool | `false` | Enforces the published quota (200 requests per minute) per tenant and operation, in the current process ([ADR 0000](adr/0000-reference-architecture.md) row 14). The quota is global to the API and informational: leave it off unless several workers of one process share it. A 429 stays an `UrssafUnavailable`. |
+| `rate_limiter.enabled` | bool | `false` | Enforces the published quota (200 requests per minute for the whole API) per tenant, all operations together, in the current process ([ADR 0000](adr/0000-reference-architecture.md) row 14). The quota is global to the API and informational: leave it off unless several workers of one process share it. A 429 stays an `UrssafUnavailable`. |
 
 Validation rules enforced at container build time:
 

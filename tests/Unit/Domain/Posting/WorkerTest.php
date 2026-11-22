@@ -43,12 +43,12 @@ final class WorkerTest extends TestCase
 
     public function testCompleteWorker(): void
     {
-        $nir = Nir::fromString('2690549588157');
-        $key = NirKey::fromString('80');
+        $nir = Nir::fromString('0000000000000');
+        $key = NirKey::fromString('00');
         $usageName = Label::fromString('Exemple');
         $birthName = Label::fromString('Naissance');
         $firstName = Label::fromString('Prenom');
-        $birthDate = CalendarDate::fromString('1969-05-31');
+        $birthDate = CalendarDate::fromString('2000-01-01');
         $birthPlace = Label::fromString('Villexemple');
         $address = Address::of(Label::fromString('1 rue Exemple'), null, null, null, Country::France);
         $email = EmailAddress::fromString('test@example.invalid');
@@ -70,19 +70,19 @@ final class WorkerTest extends TestCase
         static::assertSame($email, $worker->email());
         static::assertSame($phone1, $worker->phone1());
         static::assertSame($phone2, $worker->phone2());
-        static::assertNotContains('2690549588157', $worker->__debugInfo());
-        static::assertStringNotContainsString('2690549588157', print_r($worker, true));
+        static::assertNotContains('0000000000000', $worker->__debugInfo());
+        static::assertStringNotContainsString('0000000000000', print_r($worker, true));
     }
 
     public function testMinimalWorker(): void
     {
         $worker = Worker::of(
-            Nir::fromString('2690549588157'),
+            Nir::fromString('0000000000000'),
             null,
             Label::fromString('Exemple'),
             null,
             Label::fromString('Prenom'),
-            CalendarDate::fromString('1969-05-31'),
+            CalendarDate::fromString('2000-01-01'),
             null,
             null,
             Country::France,

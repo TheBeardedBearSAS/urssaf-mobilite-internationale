@@ -62,3 +62,11 @@ PDF-only 403 on the declaration and a PDF-only 429 everywhere. The sandbox token
   reference.
 - When the contract tests settle the token host, a header or the 403 / 404 bodies, the change is configuration or a
   one-line mapping change.
+
+## Amendments
+
+- **2026-11-22 (review).** The PSR-18 client, whether the bundle's default (created with `max_redirects: 0`) or one
+  provided by the host (`http_client`, `HttpTransport`), must neither follow redirects nor retry: a followed 307 / 308
+  would replay a `POST` with the declaration (NIR) or the client secret to another URL, and a silent retry defeats
+  [ADR 0004](0004-unknown-outcome-and-retry.md). A 3xx answer therefore reaches `ResponseInterpreter` and ends as
+  `UnexpectedUrssafResponse` (the "3xx" row of the status table; covered by tests on the API and the token endpoint).

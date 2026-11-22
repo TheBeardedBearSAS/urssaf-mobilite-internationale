@@ -31,12 +31,12 @@ final class WorkerReaderTest extends TestCase
 
         static::assertSame([], ViolationSummary::of($reader->result()));
         static::assertNotNull($worker);
-        static::assertSame('2690549588157', $worker->nir()->value());
-        static::assertSame('80', $worker->nirKey()?->value());
+        static::assertSame('0000000000000', $worker->nir()->value());
+        static::assertSame('00', $worker->nirKey()?->value());
         static::assertSame('Exemple', $worker->usageName()->value());
         static::assertSame('Naissance', $worker->birthName()?->value());
         static::assertSame('Prenom', $worker->firstName()->value());
-        static::assertSame('1969-05-31', $worker->birthDate()->toString());
+        static::assertSame('2000-01-01', $worker->birthDate()->toString());
         static::assertSame('Villexemple', $worker->birthPlace()?->value());
         static::assertSame(Country::Espagne, $worker->birthCountry());
         static::assertSame(Country::France, $worker->nationality());
@@ -78,11 +78,11 @@ final class WorkerReaderTest extends TestCase
     public static function provideSingleMissingField(): iterable
     {
         $address = PostingDrafts::address();
-        yield 'nir' => [new WorkerDraft(null, '80', 'Exemple', null, 'Prenom', '1969-05-31', null, null, 'FRANCE', $address, null, null, null), 'nir'];
-        yield 'usageName' => [new WorkerDraft('2690549588157', null, null, null, 'Prenom', '1969-05-31', null, null, 'FRANCE', null, null, null, null), 'usageName'];
-        yield 'firstName' => [new WorkerDraft('2690549588157', null, 'Exemple', null, null, '1969-05-31', null, null, 'FRANCE', null, null, null, null), 'firstName'];
-        yield 'birthDate' => [new WorkerDraft('2690549588157', null, 'Exemple', null, 'Prenom', null, null, null, 'FRANCE', null, null, null, null), 'birthDate'];
-        yield 'nationality' => [new WorkerDraft('2690549588157', null, 'Exemple', null, 'Prenom', '1969-05-31', null, null, null, null, null, null, null), 'nationality'];
+        yield 'nir' => [new WorkerDraft(null, '00', 'Exemple', null, 'Prenom', '2000-01-01', null, null, 'FRANCE', $address, null, null, null), 'nir'];
+        yield 'usageName' => [new WorkerDraft('0000000000000', null, null, null, 'Prenom', '2000-01-01', null, null, 'FRANCE', null, null, null, null), 'usageName'];
+        yield 'firstName' => [new WorkerDraft('0000000000000', null, 'Exemple', null, null, '2000-01-01', null, null, 'FRANCE', null, null, null, null), 'firstName'];
+        yield 'birthDate' => [new WorkerDraft('0000000000000', null, 'Exemple', null, 'Prenom', null, null, null, 'FRANCE', null, null, null, null), 'birthDate'];
+        yield 'nationality' => [new WorkerDraft('0000000000000', null, 'Exemple', null, 'Prenom', '2000-01-01', null, null, null, null, null, null, null), 'nationality'];
     }
 
     #[DataProvider('provideSingleMissingField')]
@@ -97,7 +97,7 @@ final class WorkerReaderTest extends TestCase
     public function testMinimalDraft(): void
     {
         $reader = new DraftReader();
-        $draft = new WorkerDraft('2690549588157', null, '', null, '', '1969-05-31', null, null, 'FRANCE', null, null, null, null);
+        $draft = new WorkerDraft('0000000000000', null, '', null, '', '2000-01-01', null, null, 'FRANCE', null, null, null, null);
 
         $worker = (new WorkerReader($reader))->read('worker', $draft);
 
@@ -113,7 +113,7 @@ final class WorkerReaderTest extends TestCase
         $reader = new DraftReader();
         $long = str_repeat('x', 256);
         $draft = new WorkerDraft(
-            '269054958815',
+            '000000000000',
             '8',
             $long,
             $long,
@@ -153,8 +153,8 @@ final class WorkerReaderTest extends TestCase
         );
         foreach ($reader->result()->all() as $violation) {
             static::assertStringNotContainsString('xxx', $violation->message());
-            static::assertStringNotContainsString('269054958815', $violation->message());
-            static::assertNotContains('269054958815', $violation->params());
+            static::assertStringNotContainsString('000000000000', $violation->message());
+            static::assertNotContains('000000000000', $violation->params());
         }
     }
 
@@ -192,6 +192,6 @@ final class WorkerReaderTest extends TestCase
         $draft = PostingDrafts::worker();
 
         static::assertSame(array_fill_keys(array_keys(get_object_vars($draft)), '***'), $draft->__debugInfo());
-        static::assertStringNotContainsString('2690549588157', print_r($draft, true));
+        static::assertStringNotContainsString('0000000000000', print_r($draft, true));
     }
 }

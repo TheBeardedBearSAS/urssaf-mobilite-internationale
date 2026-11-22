@@ -597,7 +597,7 @@ Also declared and unused: the global tag `GrandDeclarant`; `components.responses
 14. **Quota** ([ADR 0000](adr/0000-reference-architecture.md) row 14). A 429 is an `UrssafUnavailable`
     (`isQuotaExceeded()`, `Retry-After` kept when present) that is safe to repeat; the package itself never retries. The
     200 requests/minute figure is global to the API and informational: the client-side limiter (`RateLimiter` port,
-    `SlidingWindowRateLimiter`, per tenant and operation, in the current process) is **opt-in** and off by default
+    `SlidingWindowRateLimiter`, one window per tenant, all operations together, in the current process) is **opt-in** and off by default
     (`rate_limiter.enabled`, `GatewayOptions::withRateLimiter()`); the sandbox quota is not published.
 
 ---

@@ -32,7 +32,7 @@ payload example and a production quota of 200 requests per minute. The SDK is st
 | 11 | **Workflow, domain events, transactional outbox, integration events** (`UnitOfWork`, `EventPublisher` PSR-14, `Outbox`, `IntegrationEventSink`, `Contract\Event`). | **Not applicable** | Stateless SDK: nothing is recorded locally, so there is no state change to publish ([ADR 0001](0001-stateless-sdk.md)). No `docs/workflow.md`, no `docs/integration-events.md`. |
 | 12 | **Multi-tenant**: `TenantId` first argument of every gateway method and command; `CredentialsProvider::forTenant()` the only source of secrets. | **Inherited** | A tenant is one credential set; nothing else is resolved per tenant ([ADR 0007](0007-tenant-model.md)). |
 | 13 | **No internal retry / backoff**: the package classifies failures, the caller retries. | **Inherited** | The two `POST` operations are never resent; an uncertain outcome throws `OutcomeUnknown` ([ADR 0004](0004-unknown-outcome-and-retry.md)). |
-| 14 | **Client-side rate limiter** (`RateLimiter` port, sliding window per tenant and operation, configured from published quotas). | **Adapted** | `RateLimiter` port and `SlidingWindowRateLimiter` provided, per tenant and operation, limit from the published 200 requests per minute. Opt-in and disabled by default, as in PAJE: the production quota is global to the API and informational (api-reference §4.14), and the sandbox quota is not published. 429 stays `UrssafUnavailable::isQuotaExceeded()`, `Retry-After` honoured when present. |
+| 14 | **Client-side rate limiter** (`RateLimiter` port, sliding window per tenant and operation, configured from published quotas). | **Adapted** | `RateLimiter` port and `SlidingWindowRateLimiter` provided, one window per tenant (see Amendments), limit from the published 200 requests per minute. Opt-in and disabled by default, as in PAJE: the production quota is global to the API and informational (api-reference §4.14), and the sandbox quota is not published. 429 stays `UrssafUnavailable::isQuotaExceeded()`, `Retry-After` honoured when present. |
 | 15 | **Doctrine bridge** (XML mapping, DBAL types, outbox, dedicated entity manager). | **Not applicable** | Nothing to persist; personal data must never be persisted by the package (roadmap). The Deptrac `DoctrineBridge` layer and `src/Bridge/Doctrine/.gitkeep` stay; no `docs/doctrine.md`. |
 | 16 | **Symfony bundle**: `AbstractBundle`, `BundleConfiguration` + `ConfigurationRules`, `ServiceIds`, registrars, `#[AsCommand]` commands, `urssaf:…:check` with tagged `InstallationCheck`, translations en / fr, Flex recipe. | **Adapted** | No Messenger, Lock nor Scheduler (no background work); names, environment variables and the simulator guard of [ADR 0010](0010-symfony-bridge.md). |
 | 17 | **Standalone builder** and **Testing simulator**. | **Inherited** | `UrssafMobiliteInternationaleBuilder` (custom gateway refused in production, AE ADR 0015), `Testing\SimulatedMobilityGateway`. |
@@ -49,3 +49,9 @@ payload example and a production quota of 200 requests per minute. The SDK is st
   published sandbox quota) needs a new ADR.
 - Short slug `mi`: console `urssaf:mi:*`, environment `URSSAF_MI_*`, prefix `urssaf_mi`, bundle alias
   `urssaf_mobilite_internationale`, PHP root namespace `TheBeardedBear\UrssafMobiliteInternationale`.
+
+## Amendments
+
+- **2026-11-22 (review).** Row 14: the published quota is 200 requests per minute for the whole API per client
+  ([api-reference](../api-reference.md) §1.1), not per operation. `SlidingWindowRateLimiter` therefore keeps ONE sliding
+  window per tenant, all operations together; the operation only names the refused call in `RateLimitExceeded`.

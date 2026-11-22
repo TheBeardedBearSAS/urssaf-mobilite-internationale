@@ -12,11 +12,12 @@ declare(strict_types=1);
 
 namespace TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Wire;
 
-use JsonException;
+use SensitiveParameter;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
 
 final class JsonEncoder
 {
-    private const FLAGS = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+    private const FLAGS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
 
     /**
      * Compact JSON, slashes and Unicode left as they are. A list encodes as an array, any other array as an object;
@@ -24,10 +25,19 @@ final class JsonEncoder
      *
      * @param array<array-key, mixed>|JsonObject $value
      *
-     * @throws JsonException for invalid UTF-8 strings or a value JSON cannot represent
+     * @throws InvalidValue "payload.invalid_encoding" for an invalid UTF-8 string or a value JSON cannot represent; the
+     *                      message never contains the value (ADR 0006)
      */
-    public static function encode(array|JsonObject $value): string
+    public static function encode(#[SensitiveParameter] array|JsonObject $value): string
     {
-        return \strval(json_encode($value, self::FLAGS));
+        $json = json_encode($value, self::FLAGS);
+        if ($json === false) {
+            throw InvalidValue::because(
+                'payload.invalid_encoding',
+                'Invalid payload: a text is not valid UTF-8 and cannot be encoded as JSON.',
+            );
+        }
+
+        return $json;
     }
 }

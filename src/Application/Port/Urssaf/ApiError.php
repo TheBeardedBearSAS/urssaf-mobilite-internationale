@@ -27,6 +27,20 @@ final readonly class ApiError
         return new self($code, $message, $description);
     }
 
+    /**
+     * The message and the description are verbatim URSSAF text that may quote personal data: masked in debug output.
+     *
+     * @return array<string, ?string>
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'code' => $this->code,
+            'message' => $this->message === null ? null : '***',
+            'description' => $this->description === null ? null : '***',
+        ];
+    }
+
     public function code(): ?string
     {
         return $this->code;

@@ -15,6 +15,7 @@ namespace TheBeardedBear\UrssafMobiliteInternationale\Tests\Unit\Infrastructure\
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TheBeardedBear\UrssafMobiliteInternationale\Application\Port\Operation;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\PersonalDataNotSerializable;
 use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Http\ApiRequest;
 
 final class ApiRequestTest extends TestCase
@@ -46,6 +47,41 @@ final class ApiRequestTest extends TestCase
         static::assertSame([], $request->query());
         static::assertSame('{"a":1}', $request->jsonBody());
         static::assertFalse($request->isDownload());
+    }
+
+    public function testTheBodyIsMaskedInDebugOutput(): void
+    {
+        $request = ApiRequest::post(Operation::SubmitPosting, '/declaration/detachement/UE', '{"nir":"secret-body"}');
+
+        static::assertSame(
+            [
+                'operation' => Operation::SubmitPosting,
+                'method' => 'POST',
+                'path' => '/declaration/detachement/UE',
+                'query' => [],
+                'jsonBody' => '***',
+                'download' => false,
+            ],
+            $request->__debugInfo(),
+        );
+        static::assertStringNotContainsString('secret-body', print_r($request, true));
+        static::assertNull(ApiRequest::get(Operation::GetEnrolment, '/enrolements/x', ['limit' => 1])->__debugInfo()['jsonBody']);
+    }
+
+    public function testItRefusesToBeSerialized(): void
+    {
+        $request = ApiRequest::post(Operation::SubmitPosting, '/declaration/detachement/UE', '{"nir":"secret-body"}');
+
+        $this->expectException(PersonalDataNotSerializable::class);
+
+        serialize($request);
+    }
+
+    public function testItRefusesToBeUnserialized(): void
+    {
+        $this->expectException(PersonalDataNotSerializable::class);
+
+        unserialize('O:' . \strlen(ApiRequest::class) . ':"' . ApiRequest::class . '":0:{}');
     }
 
     public function testDeleteHasNeitherQueryNorBody(): void

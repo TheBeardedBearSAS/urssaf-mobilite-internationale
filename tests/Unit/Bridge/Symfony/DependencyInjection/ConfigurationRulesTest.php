@@ -118,7 +118,28 @@ final class ConfigurationRulesTest extends TestCase
     public static function credentials(): iterable
     {
         yield 'environment variable as written' => [self::withSecret('%env(URSSAF_MI_CLIENT_SECRET)%'), false];
-        yield 'environment variable as a placeholder' => [self::withSecret('env_URSSAF_MI_CLIENT_SECRET_0a1b2c'), false];
+        yield 'environment variable as a placeholder' => [
+            self::withSecret('env_0123456789abcdef_URSSAF_MI_CLIENT_SECRET_0123456789abcdef0123456789abcdef'),
+            false,
+        ];
+        yield 'processor as a placeholder' => [
+            self::withSecret('env_0123456789abcdef_file_URSSAF_SECRET_FILE_0123456789abcdef0123456789abcdef'),
+            false,
+        ];
+        yield 'literal secret that starts with env_' => [self::withSecret('env_my-literal-secret'), true];
+        yield 'literal secret shaped like env_ without the hash' => [self::withSecret('env_0123456789abcdef_NAME'), true];
+        yield 'literal secret that ends like a placeholder' => [
+            self::withSecret('env_0123456789abcdef_NAME_0123456789abcdef0123456789abcdef-tail'),
+            true,
+        ];
+        yield 'placeholder followed by a newline' => [
+            self::withSecret("env_0123456789abcdef_NAME_0123456789abcdef0123456789abcdef\n"),
+            true,
+        ];
+        yield 'literal around an environment variable' => [self::withSecret('prefix%env(URSSAF_MI_CLIENT_SECRET)%'), true];
+        yield 'environment variable followed by a literal' => [self::withSecret('%env(URSSAF_MI_CLIENT_SECRET)%suffix'), true];
+        yield 'empty environment variable' => [self::withSecret('%env()%'), true];
+        yield 'unclosed environment variable' => [self::withSecret('%env(URSSAF_MI_CLIENT_SECRET'), true];
         yield 'secret with a processor' => [self::withSecret('%env(file:URSSAF_SECRET_FILE)%'), false];
         yield 'literal secret' => [self::withSecret('a-literal-secret'), true];
         yield 'literal secret that mentions env' => [self::withSecret('my_env_secret'), true];

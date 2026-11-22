@@ -15,7 +15,7 @@ namespace TheBeardedBear\UrssafMobiliteInternationale\Application\Port;
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Shared\TenantId;
 
 /**
- * Opt-in client-side throttling, per tenant and operation (ADR 0000 row 14), disabled by default: the published
+ * Opt-in client-side throttling, per tenant (ADR 0000 row 14), disabled by default: the published
  * quota ({@see Operation::quotaPerMinute()}) is global to the API and informational. An HTTP 429 stays an
  * {@see Urssaf\UrssafUnavailable::quotaExceeded()}.
  */

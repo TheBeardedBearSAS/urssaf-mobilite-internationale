@@ -38,8 +38,8 @@ final class PostingRequestReaderTest extends TestCase
         static::assertSame('test@example.invalid', $request->declarant()->email()->value());
         static::assertSame('0000000003', $request->declarant()->phone1()->value());
         static::assertNull($request->declarant()->phone2());
-        static::assertSame('404833048', $request->declaration()->companyReference()->siren()->value());
-        static::assertSame('2690549588157', $request->declaration()->posting()->worker()?->nir()->value());
+        static::assertSame('000000000', $request->declaration()->companyReference()->siren()->value());
+        static::assertSame('0000000000000', $request->declaration()->posting()->worker()?->nir()->value());
         static::assertSame(['result' => '***', 'request' => '***'], $reading->__debugInfo());
     }
 

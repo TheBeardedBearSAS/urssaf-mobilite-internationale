@@ -23,6 +23,15 @@ $package = UrssafMobiliteInternationaleBuilder::create(
     ->build();
 ```
 
+The PSR-18 client you give must **neither follow redirects nor retry** (ADR [0002](adr/0002-http-client-adaptations.md),
+Amendments): a followed 307 / 308 would replay a `POST` carrying the declaration (NIR) or the OAuth2 secret to another
+URL, and a silent retry would defeat the uncertain-outcome handling of ADR [0004](adr/0004-unknown-outcome-and-retry.md).
+A 3xx answer is an `UnexpectedUrssafResponse`. For example, with Symfony HttpClient: `['max_redirects' => 0]`.
+
+The builder and the Symfony bundle build the same package: the bundle only adds configuration, console commands and
+the default HTTP client; any option of the builder has its bundle key and the other way round, except the keys that
+need a PHP object (a custom `HttpTransport`, a `GatewayOptions`, a validation policy) which the bundle takes as service ids.
+
 Every `with*` method returns a new builder.
 
 | Method | Effect |

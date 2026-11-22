@@ -87,23 +87,38 @@ final class SlidingWindowRateLimiterTest extends TestCase
         static::assertNull(self::retryAfterOrNull($limiter, $tenant, Operation::RequestEnrolment));
     }
 
-    public function testQuotaIsCountedPerTenantAndPerOperation(): void
+    public function testQuotaIsCountedPerTenant(): void
     {
         $limiter = new SlidingWindowRateLimiter(new SystemClock(new MockClock(self::START)));
         $tenant = TenantId::fromString('tenant-a');
         self::fillQuota($limiter, $tenant, Operation::RequestEnrolment);
 
         static::assertNull(self::retryAfterOrNull($limiter, TenantId::fromString('tenant-b'), Operation::RequestEnrolment));
-        static::assertNull(self::retryAfterOrNull($limiter, $tenant, Operation::GetEnrolment));
     }
 
-    public function testEachOperationUsesItsOwnOfficialQuota(): void
+    public function testTheQuotaIsSharedByEveryOperationOfATenant(): void
     {
         $limiter = new SlidingWindowRateLimiter(new SystemClock(new MockClock(self::START)));
         $tenant = TenantId::fromString('tenant-a');
-        self::fillQuota($limiter, $tenant, Operation::SubmitPosting);
+        self::fillQuota($limiter, $tenant, Operation::GetEnrolment);
 
         static::assertSame(60, self::retryAfterOrNull($limiter, $tenant, Operation::SubmitPosting));
+    }
+
+    public function testTheQuotaIsConsumedByAMixOfOperations(): void
+    {
+        $limiter = new SlidingWindowRateLimiter(new SystemClock(new MockClock(self::START)));
+        $tenant = TenantId::fromString('tenant-a');
+        for ($i = 0; $i < Operation::GetEnrolment->quotaPerMinute(); ++$i) {
+            $limiter->acquire($tenant, $i % 2 === 0 ? Operation::GetEnrolment : Operation::ListEnrolments);
+        }
+
+        try {
+            $limiter->acquire($tenant, Operation::SubmitPosting);
+            static::fail('The quota should be exceeded.');
+        } catch (RateLimitExceeded $exception) {
+            static::assertSame(Operation::SubmitPosting, $exception->operation());
+        }
     }
 
     private static function fillQuota(

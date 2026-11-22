@@ -37,6 +37,8 @@ final class OAuth2TokenResponseTest extends TestCase
     public static function unexpectedStatuses(): iterable
     {
         yield 'redirect' => [302];
+        yield 'temporary redirect' => [307];
+        yield 'permanent redirect' => [308];
         yield 'multiple choices' => [300];
         yield 'not found' => [404];
         yield 'conflict' => [409];
@@ -78,6 +80,9 @@ final class OAuth2TokenResponseTest extends TestCase
         yield 'zero lifetime' => ['{"access_token":"t","expires_in":0}'];
         yield 'negative lifetime' => ['{"access_token":"t","expires_in":-5}'];
         yield 'textual lifetime' => ['{"access_token":"t","expires_in":"soon"}'];
+        yield 'zero string lifetime' => ['{"access_token":"t","expires_in":"0"}'];
+        yield 'negative string lifetime' => ['{"access_token":"t","expires_in":"-5"}'];
+        yield 'boolean lifetime' => ['{"access_token":"t","expires_in":true}'];
     }
 
     #[DataProvider('invalidBodies')]
@@ -97,6 +102,24 @@ final class OAuth2TokenResponseTest extends TestCase
         $stack->respond(200, '{"access_token":"short","expires_in":1}');
 
         static::assertSame('short', $this->fetch($stack));
+    }
+
+    public function testANumericStringLifetimeIsAccepted(): void
+    {
+        $stack = Stacks::sandbox();
+        $stack->respond(200, '{"access_token":"stringly","expires_in":"3600"}');
+
+        static::assertSame('stringly', $this->fetch($stack));
+        // The lifetime is really used: a second call within the hour is served from the store, without a new request.
+        static::assertSame('stringly', $this->fetch($stack));
+    }
+
+    public function testAFractionalNumericStringLifetimeIsTruncatedToWholeSeconds(): void
+    {
+        $stack = Stacks::sandbox();
+        $stack->respond(200, '{"access_token":"fractional-string","expires_in":"3600.9"}');
+
+        static::assertSame('fractional-string', $this->fetch($stack));
     }
 
     public function testAFractionalLifetimeIsTruncatedToWholeSeconds(): void

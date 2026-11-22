@@ -57,7 +57,8 @@ final readonly class GatewayRegistrar
         }
         $this->services->set(ServiceIds::SYMFONY_HTTP_CLIENT, HttpClientInterface::class)
             ->factory(HttpClient::class . '::create')
-            ->args([['timeout' => $config['http_timeout']]]);
+            // No redirect is ever followed: a replayed POST would carry the declaration (NIR) and the secret to another URL (ADR 0002).
+            ->args([['timeout' => $config['http_timeout'], 'max_redirects' => 0]]);
         // Also provides the PSR-17 request and stream factories, whatever the PSR-18 client in use.
         $this->services->set(ServiceIds::PSR18_CLIENT, Psr18Client::class)->args([new Reference(ServiceIds::SYMFONY_HTTP_CLIENT)]);
         $this->services->set(ServiceIds::HTTP_TRANSPORT, HttpTransport::class)->args([

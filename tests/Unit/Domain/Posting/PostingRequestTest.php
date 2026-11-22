@@ -44,7 +44,7 @@ final class PostingRequestTest extends TestCase
     {
         $declarant = Declarant::of(Label::fromString('Nom exemple'), EmailAddress::fromString('test@example.invalid'), PhoneNumber::fromString('0000000001'), null);
         $company = self::company();
-        $reference = CompanyReference::of(ReferenceSiren::fromString('404833048'), ReferenceNic::fromString('00022'), null);
+        $reference = CompanyReference::of(ReferenceSiren::fromString('000000000'), ReferenceNic::fromString('00022'), null);
         $signature = Signature::of(true, true);
         $details = self::details(null);
 
@@ -126,7 +126,7 @@ final class PostingRequestTest extends TestCase
     private static function request(?Telework $telework): PostingRequest
     {
         $declarant = Declarant::of(Label::fromString('Nom exemple'), EmailAddress::fromString('test@example.invalid'), PhoneNumber::fromString('0000000001'), null);
-        $reference = CompanyReference::of(ReferenceSiren::fromString('404833048'), ReferenceNic::fromString('00022'), null);
+        $reference = CompanyReference::of(ReferenceSiren::fromString('000000000'), ReferenceNic::fromString('00022'), null);
 
         return PostingRequest::of($declarant, Declaration::of(self::company(), $reference, Signature::of(true, true), self::details($telework)));
     }

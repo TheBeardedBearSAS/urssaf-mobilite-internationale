@@ -40,12 +40,12 @@ final class PostingDrafts
     public static function worker(): WorkerDraft
     {
         return new WorkerDraft(
-            '2690549588157',
-            '80',
+            '0000000000000',
+            '00',
             'Exemple',
             'Naissance',
             'Prenom',
-            '1969-05-31',
+            '2000-01-01',
             'Villexemple',
             'ESPAGNE',
             'FRANCE',
@@ -104,7 +104,7 @@ final class PostingDrafts
     {
         return new DeclarationDraft(
             self::company(),
-            new CompanyReferenceDraft('404833048', '00022', '000000000000000000'),
+            new CompanyReferenceDraft('000000000', '00022', '000000000000000000'),
             new SignatureDraft(true, true),
             $details,
         );

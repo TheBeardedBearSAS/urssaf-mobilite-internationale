@@ -25,8 +25,12 @@ use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Environmen
  */
 final class ConfigurationRules
 {
-    /** What the container makes of "%env(NAME)%" while it validates the configuration. */
-    private const ENV_PLACEHOLDER = '/^env_|%env\(/';
+    /**
+     * A complete "%env(NAME)%" placeholder (processors allowed), or what the container makes of it while it validates the
+     * configuration: "env_" + 16 hexadecimal characters, the name of the variable, 32 hexadecimal characters
+     * (EnvPlaceholderParameterBag). Anchored on both sides: "env_…" or "%env(" inside a literal secret does not count.
+     */
+    private const ENV_PLACEHOLDER = '/^(?:%env\([^()%\s]+\)%|env_[0-9a-f]{16}_[A-Za-z0-9_]+_[0-9a-f]{32})$/D';
 
     /**
      * @param array<array-key, mixed> $value

@@ -17,6 +17,7 @@ use Nyholm\Psr7\Stream;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Http\Psr7BinaryStream;
+use TheBeardedBear\UrssafMobiliteInternationale\Tests\Unit\Infrastructure\Urssaf\Fake\StalledStream;
 
 final class Psr7BinaryStreamTest extends TestCase
 {
@@ -57,6 +58,26 @@ final class Psr7BinaryStreamTest extends TestCase
         static::assertSame(0, $stream->copyTo($target));
         static::assertSame(0, fwrite($target, ''));
         fclose($target);
+    }
+
+    public function testCopyingAStalledStreamStopsAtTheFirstEmptyRead(): void
+    {
+        $body = new StalledStream();
+        $stream = new Psr7BinaryStream($body, new Psr17Factory());
+        $target = fopen('php://memory', 'w+b');
+        static::assertIsResource($target);
+
+        static::assertSame(0, $stream->copyTo($target));
+        static::assertSame(1, $body->reads());
+        fclose($target);
+    }
+
+    public function testItIsNotDumpedInDebugOutput(): void
+    {
+        $stream = new Psr7BinaryStream(Stream::create('%PDF-1.7 secret'), new Psr17Factory());
+
+        static::assertSame(['body' => '***'], $stream->__debugInfo());
+        static::assertStringNotContainsString('secret', print_r($stream, true));
     }
 
     public function testTheTargetResourceIsNotClosedWhenTheCopyFails(): void

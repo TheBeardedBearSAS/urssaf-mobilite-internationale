@@ -53,3 +53,10 @@ parameters:
     shipmonkRules:
         enableAllRules: true
 
+    ignoreErrors:
+        # The PSR-7 test double implements StreamInterface::getMetadata(?string $key = null): the signature is imposed.
+        -
+            identifier: ergebnis.noParameterWithNullDefaultValue
+            path: tests/Unit/Infrastructure/Urssaf/Fake/StalledStream.php
+            count: 1
+

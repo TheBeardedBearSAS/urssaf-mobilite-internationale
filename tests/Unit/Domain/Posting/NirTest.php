@@ -21,11 +21,11 @@ final class NirTest extends TestCase
 {
     public function testNir(): void
     {
-        $nir = Nir::fromString('2690549588157');
+        $nir = Nir::fromString('0000000000000');
 
-        static::assertSame('2690549588157', $nir->value());
-        static::assertTrue($nir->equals(Nir::fromString('2690549588157')));
-        static::assertFalse($nir->equals(Nir::fromString('2690549588158')));
+        static::assertSame('0000000000000', $nir->value());
+        static::assertTrue($nir->equals(Nir::fromString('0000000000000')));
+        static::assertFalse($nir->equals(Nir::fromString('0000000000001')));
         static::assertSame('100002A000000', Nir::fromString('100002A000000')->value(), 'Corsica, kept verbatim');
         static::assertSame('100002b000000', Nir::fromString('100002b000000')->value());
         static::assertSame(['value' => '***'], $nir->__debugInfo());
@@ -37,13 +37,13 @@ final class NirTest extends TestCase
     public static function provideInvalidNirs(): iterable
     {
         yield 'empty' => [''];
-        yield 'twelve' => ['269054958815'];
-        yield 'fourteen' => ['26905495881570'];
-        yield 'with key' => ['269054958815780'];
+        yield 'twelve' => ['000000000000'];
+        yield 'fourteen' => ['00000000000000'];
+        yield 'with key' => ['000000000000080'];
         yield 'letter C in 7th position' => ['100002C000000'];
         yield 'letter elsewhere' => ['A00002A000000'];
-        yield 'trailing newline' => ["2690549588157\n"];
-        yield 'leading space' => [' 2690549588157'];
+        yield 'trailing newline' => ["0000000000000\n"];
+        yield 'leading space' => [' 0000000000000'];
     }
 
     #[DataProvider('provideInvalidNirs')]
@@ -59,10 +59,10 @@ final class NirTest extends TestCase
 
     public function testNirKey(): void
     {
-        $key = NirKey::fromString('80');
+        $key = NirKey::fromString('00');
 
-        static::assertSame('80', $key->value());
-        static::assertTrue($key->equals(NirKey::fromString('80')));
+        static::assertSame('00', $key->value());
+        static::assertTrue($key->equals(NirKey::fromString('00')));
         static::assertFalse($key->equals(NirKey::fromString('08')));
         static::assertSame(['value' => '***'], $key->__debugInfo());
     }

@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Http;
 
+use SensitiveParameter;
 use TheBeardedBear\UrssafMobiliteInternationale\Application\Port\Operation;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\PersonalDataNotSerializable;
 
 /**
  * Description of one API call, independent from the HTTP library (ADR 0002). The path is relative to
@@ -43,7 +45,7 @@ final readonly class ApiRequest
         return new self($operation, 'GET', $path, $query, null, false);
     }
 
-    public static function post(Operation $operation, string $path, string $jsonBody): self
+    public static function post(Operation $operation, string $path, #[SensitiveParameter] string $jsonBody): self
     {
         return new self($operation, 'POST', $path, [], $jsonBody, false);
     }
@@ -59,6 +61,39 @@ final readonly class ApiRequest
     public static function download(Operation $operation, string $path): self
     {
         return new self($operation, 'GET', $path, [], null, true);
+    }
+
+    /**
+     * The JSON body of a POST is a declaration (NIR, names, addresses): masked in debug output (ADR 0006).
+     *
+     * @return array<string, mixed>
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'operation' => $this->operation,
+            'method' => $this->method,
+            'path' => $this->path,
+            'query' => $this->query,
+            'jsonBody' => $this->jsonBody === null ? null : '***',
+            'download' => $this->download,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        throw PersonalDataNotSerializable::create();
+    }
+
+    /**
+     * @param array<array-key, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        throw PersonalDataNotSerializable::create();
     }
 
     public function operation(): Operation

@@ -172,7 +172,9 @@ final readonly class OAuth2TokenProvider
 
         try {
             $payload = JsonDecoder::decode((string) $response->getBody());
-            $lifetime = (int) $payload->number('expires_in');
+            // Some OAuth2 servers send the lifetime as a numeric string ("3600").
+            $rawLifetime = $payload->number('expires_in') ?? $payload->string('expires_in');
+            $lifetime = is_numeric($rawLifetime) ? (int) $rawLifetime : 0;
             if ($lifetime <= 0) {
                 throw UnreadablePayload::because('field "expires_in" is missing or not positive');
             }

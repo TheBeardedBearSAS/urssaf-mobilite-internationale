@@ -16,6 +16,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TheBeardedBear\UrssafMobiliteInternationale\Application\Port\Operation;
 use TheBeardedBear\UrssafMobiliteInternationale\Application\Port\Urssaf\OutcomeUnknown;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Posting\FreeText;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Posting\PostingDetails;
 use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Wire\JsonEncoder;
 use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Wire\PostingRequestEncoder;
 use TheBeardedBear\UrssafMobiliteInternationale\Tests\Unit\Infrastructure\Urssaf\Fake\TransportFailure;
@@ -44,6 +47,23 @@ final class UrssafHttpGatewayPostingTest extends TestCase
         static::assertSame(JsonEncoder::encode((new PostingRequestEncoder())->encode($request)), (string) $sent->getBody());
         static::assertSame(Calls::DOSSIER_ID, $receipt->first()->value());
         static::assertCount(1, $receipt->dossierIds());
+    }
+
+    public function testAnInvalidUtf8TextIsAnInvalidValueAndNothingIsSent(): void
+    {
+        $stack = Stacks::sandbox();
+        $request = SyntheticPostings::withDetails(
+            PostingDetails::of(null, null, null, null, null, null, null, null, null, [], FreeText::fromString("secret-\xB1\x31")),
+        );
+
+        try {
+            $stack->gateway()->submitPosting(Stacks::tenant(), $request);
+            static::fail('An InvalidValue was expected.');
+        } catch (InvalidValue $exception) {
+            static::assertSame('payload.invalid_encoding', $exception->violationCode());
+            static::assertStringNotContainsString('secret', $exception->getMessage());
+        }
+        static::assertCount(0, $stack->requests());
     }
 
     public function testAReceiptWithSeveralIdentifiersIsKeptWhole(): void

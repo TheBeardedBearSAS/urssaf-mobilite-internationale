@@ -23,11 +23,11 @@ final class ReferenceIdentifiersTest extends TestCase
 {
     public function testSiren(): void
     {
-        $siren = ReferenceSiren::fromString('404833048');
+        $siren = ReferenceSiren::fromString('000000000');
 
-        static::assertSame('404833048', $siren->value());
-        static::assertTrue($siren->equals(ReferenceSiren::fromString('404833048')));
-        static::assertFalse($siren->equals(ReferenceSiren::fromString('404833049')));
+        static::assertSame('000000000', $siren->value());
+        static::assertTrue($siren->equals(ReferenceSiren::fromString('000000000')));
+        static::assertFalse($siren->equals(ReferenceSiren::fromString('000000001')));
         static::assertSame('ABCDEFGHZ', ReferenceSiren::fromString('ABCDEFGHZ')->value(), 'upper-case letters allowed');
     }
 
@@ -37,11 +37,11 @@ final class ReferenceIdentifiersTest extends TestCase
     public static function provideInvalidSirens(): iterable
     {
         yield 'empty' => [''];
-        yield 'eight' => ['40483304'];
-        yield 'ten' => ['4048330480'];
-        yield 'lower case' => ['40483304a'];
-        yield 'trailing newline' => ["404833048\n"];
-        yield 'leading space' => [' 40483304'];
+        yield 'eight' => ['00000000'];
+        yield 'ten' => ['0000000000'];
+        yield 'lower case' => ['00000000a'];
+        yield 'trailing newline' => ["000000000\n"];
+        yield 'leading space' => [' 00000000'];
     }
 
     #[DataProvider('provideInvalidSirens')]
@@ -117,7 +117,7 @@ final class ReferenceIdentifiersTest extends TestCase
 
     public function testCompanyReference(): void
     {
-        $siren = ReferenceSiren::fromString('404833048');
+        $siren = ReferenceSiren::fromString('000000000');
         $nic = ReferenceNic::fromString('00022');
         $number = ExternalAccountNumber::fromString('000000000000000018');
 

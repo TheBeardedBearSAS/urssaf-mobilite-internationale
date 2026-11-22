@@ -33,6 +33,18 @@ final class ApiErrorsTest extends TestCase
         static::assertFalse($error->equals(ApiError::of('ERR_FICTIF', 'Libelle fictif.', 'X')));
     }
 
+    public function testApiErrorMasksItsFreeTextInDebugOutput(): void
+    {
+        $error = ApiError::of('ERR_FICTIF', 'Texte libre fictif.', 'Description fictive.');
+
+        static::assertSame(['code' => 'ERR_FICTIF', 'message' => '***', 'description' => '***'], $error->__debugInfo());
+        static::assertStringNotContainsString('fictif.', print_r($error, true));
+        static::assertSame(
+            ['code' => null, 'message' => null, 'description' => null],
+            ApiError::of(null, null, null)->__debugInfo(),
+        );
+    }
+
     public function testApiErrorFieldsAreNullable(): void
     {
         $error = ApiError::of(null, null, null);

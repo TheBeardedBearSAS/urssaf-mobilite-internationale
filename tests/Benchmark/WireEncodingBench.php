@@ -48,7 +48,7 @@ final readonly class WireEncodingBench
             PostingDrafts::request(PostingDrafts::details()),
             PostingValidationPolicy::default(),
         );
-        $this->siren = Siren::fromString('404833048');
+        $this->siren = Siren::fromString('000000000');
         $this->nic = Nic::fromString('00022');
     }
 

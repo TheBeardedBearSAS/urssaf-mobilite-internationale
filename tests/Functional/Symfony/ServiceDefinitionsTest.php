@@ -48,7 +48,7 @@ final class ServiceDefinitionsTest extends TestCase
     {
         $container = (new TestKernel(['http_client' => null]))->definitions();
 
-        static::assertSame([['timeout' => 15.0]], $container->getDefinition(ServiceIds::SYMFONY_HTTP_CLIENT)->getArguments());
+        static::assertSame([['timeout' => 15.0, 'max_redirects' => 0]], $container->getDefinition(ServiceIds::SYMFONY_HTTP_CLIENT)->getArguments());
         static::assertEquals([new Reference('cache.app')], $container->getDefinition(TokenStore::class)->getArguments());
     }
 
@@ -77,7 +77,7 @@ final class ServiceDefinitionsTest extends TestCase
     {
         $container = (new TestKernel(['http_timeout' => 2.5]))->definitions();
 
-        static::assertSame([['timeout' => 2.5]], $container->getDefinition(ServiceIds::SYMFONY_HTTP_CLIENT)->getArguments());
+        static::assertSame([['timeout' => 2.5, 'max_redirects' => 0]], $container->getDefinition(ServiceIds::SYMFONY_HTTP_CLIENT)->getArguments());
     }
 
     public function testTheGatewayOptionsLogOnTheUrssafMiChannelAndCarryTheOptions(): void

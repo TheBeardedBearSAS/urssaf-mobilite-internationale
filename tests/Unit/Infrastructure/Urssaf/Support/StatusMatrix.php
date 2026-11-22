@@ -69,6 +69,9 @@ final class StatusMatrix
             300 => UnexpectedUrssafResponse::class,
             302 => UnexpectedUrssafResponse::class,
             304 => UnexpectedUrssafResponse::class,
+            // The redirects that replay a POST with its body, if the HTTP client followed them: they must surface.
+            307 => UnexpectedUrssafResponse::class,
+            308 => UnexpectedUrssafResponse::class,
             399 => UnexpectedUrssafResponse::class,
             600 => UnexpectedUrssafResponse::class,
         ];

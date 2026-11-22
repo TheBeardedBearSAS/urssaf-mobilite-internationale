@@ -38,7 +38,7 @@ final class PostingDetailsReaderTest extends TestCase
 
         static::assertSame([], ViolationSummary::of($reader->result()));
         static::assertNotNull($details);
-        static::assertSame('2690549588157', $details->worker()?->nir()->value());
+        static::assertSame('0000000000000', $details->worker()?->nir()->value());
         static::assertSame('2026-01-01', $details->startDate()?->toString());
         static::assertSame('2026-06-30', $details->endDate()?->toString());
         $telework = $details->telework();
@@ -156,7 +156,7 @@ final class PostingDetailsReaderTest extends TestCase
     public function testSubstantialActivityAndInvalidValues(): void
     {
         $reader = new DraftReader();
-        $worker = new WorkerDraft(null, null, '', null, '', '1969-05-31', null, null, 'FRANCE', null, null, null, null);
+        $worker = new WorkerDraft(null, null, '', null, '', '2000-01-01', null, null, 'FRANCE', null, null, null, null);
         $draft = new PostingDetailsDraft($worker, '2026-13-01', '01/01/2026', null, null, 'oui', 'Non', new SubstantialActivityDraft(null, 'X', 'CA '), null, [], '');
 
         $details = (new PostingDetailsReader($reader))->required('posting', $draft);

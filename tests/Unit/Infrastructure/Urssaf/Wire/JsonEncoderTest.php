@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace TheBeardedBear\UrssafMobiliteInternationale\Tests\Unit\Infrastructure\Urssaf\Wire;
 
-use JsonException;
 use PHPUnit\Framework\TestCase;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
 use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Wire\JsonEncoder;
 use TheBeardedBear\UrssafMobiliteInternationale\Infrastructure\Urssaf\Wire\JsonObject;
 
@@ -43,7 +43,12 @@ final class JsonEncoderTest extends TestCase
 
     public function testItRefusesInvalidUtf8(): void
     {
-        $this->expectException(JsonException::class);
-        JsonEncoder::encode(['k' => "\xB1\x31"]);
+        try {
+            JsonEncoder::encode(['k' => "secret-\xB1\x31"]);
+            static::fail('An InvalidValue was expected.');
+        } catch (InvalidValue $exception) {
+            static::assertSame('payload.invalid_encoding', $exception->violationCode());
+            static::assertStringNotContainsString('secret', $exception->getMessage());
+        }
     }
 }

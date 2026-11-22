@@ -31,7 +31,7 @@ final class DeclarationReaderTest extends TestCase
         static::assertTrue($reader->result()->isValid());
         static::assertNotNull($declaration);
         static::assertSame('Entreprise exemple', $declaration->declaringCompany()->name()->value());
-        static::assertSame('404833048', $declaration->companyReference()->siren()->value());
+        static::assertSame('000000000', $declaration->companyReference()->siren()->value());
         static::assertSame('00022', $declaration->companyReference()->nic()->value());
         static::assertSame('000000000000000000', $declaration->companyReference()->externalAccountNumber()?->value());
         static::assertTrue($declaration->signature()->personalDataAuthorisation());
@@ -64,7 +64,7 @@ final class DeclarationReaderTest extends TestCase
     public static function provideSingleMissingPart(): iterable
     {
         $company = PostingDrafts::company();
-        $reference = new CompanyReferenceDraft('404833048', '', null);
+        $reference = new CompanyReferenceDraft('000000000', '', null);
         $signature = new SignatureDraft(false, false);
         $details = PostingDrafts::emptyDetails();
         yield 'declaringCompany' => [new DeclarationDraft(null, $reference, $signature, $details), ['declaringCompany field.required']];
@@ -72,7 +72,7 @@ final class DeclarationReaderTest extends TestCase
         yield 'signature' => [new DeclarationDraft($company, $reference, null, $details), ['signature field.required']];
         yield 'posting' => [new DeclarationDraft($company, $reference, $signature, null), ['posting field.required']];
         yield 'siren' => [new DeclarationDraft($company, new CompanyReferenceDraft(null, '', null), $signature, $details), ['companyReference.siren field.required']];
-        yield 'nic' => [new DeclarationDraft($company, new CompanyReferenceDraft('404833048', null, null), $signature, $details), ['companyReference.nic field.required']];
+        yield 'nic' => [new DeclarationDraft($company, new CompanyReferenceDraft('000000000', null, null), $signature, $details), ['companyReference.nic field.required']];
         yield 'personalDataAuthorisation' => [
             new DeclarationDraft($company, $reference, new SignatureDraft(null, true), $details),
             ['signature.personalDataAuthorisation field.required'],
@@ -98,7 +98,7 @@ final class DeclarationReaderTest extends TestCase
     public function testInvalidReference(): void
     {
         $reader = new DraftReader();
-        $draft = new DeclarationDraft(PostingDrafts::company(), new CompanyReferenceDraft('40483304a', '000222', '1'), new SignatureDraft(false, false), PostingDrafts::emptyDetails());
+        $draft = new DeclarationDraft(PostingDrafts::company(), new CompanyReferenceDraft('00000000a', '000222', '1'), new SignatureDraft(false, false), PostingDrafts::emptyDetails());
 
         static::assertNull((new DeclarationReader($reader))->required('declaration', $draft));
         static::assertSame(
@@ -114,7 +114,7 @@ final class DeclarationReaderTest extends TestCase
     public function testMinimalReferenceAndFalseSignature(): void
     {
         $reader = new DraftReader();
-        $draft = new DeclarationDraft(PostingDrafts::company(), new CompanyReferenceDraft('404833048', '', null), new SignatureDraft(false, false), PostingDrafts::emptyDetails());
+        $draft = new DeclarationDraft(PostingDrafts::company(), new CompanyReferenceDraft('000000000', '', null), new SignatureDraft(false, false), PostingDrafts::emptyDetails());
 
         $declaration = (new DeclarationReader($reader))->required('declaration', $draft);
 

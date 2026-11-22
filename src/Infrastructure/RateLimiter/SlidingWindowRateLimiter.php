@@ -19,15 +19,16 @@ use TheBeardedBear\UrssafMobiliteInternationale\Application\Port\RateLimitExceed
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Shared\TenantId;
 
 /**
- * Non-blocking in-memory rate limiter: at most {@see Operation::quotaPerMinute()} calls per tenant and operation in any
- * sliding 60-second window. Call instants are kept at second precision; when the quota is reached, the retry delay
- * is the time left until the oldest call leaves the window.
+ * Non-blocking in-memory rate limiter: at most {@see Operation::quotaPerMinute()} calls per tenant, all operations
+ * together, in any sliding 60-second window (the published quota is global to the API per client, api-reference §1.1;
+ * the operation only names the one that was refused). Call instants are kept at second precision; when the quota is
+ * reached, the retry delay is the time left until the oldest call leaves the window.
  */
 final class SlidingWindowRateLimiter implements RateLimiter
 {
     private const WINDOW_SECONDS = 60;
 
-    /** @var array<array-key, array<array-key, array<int, int>>> call instants (UNIX timestamps) per tenant, then per operation */
+    /** @var array<array-key, array<int, int>> call instants (UNIX timestamps) per tenant */
     private array $calls = [];
 
     public function __construct(private readonly Clock $clock) {}
@@ -37,7 +38,7 @@ final class SlidingWindowRateLimiter implements RateLimiter
         $now = $this->clock->now()->getTimestamp();
         $windowStart = $now - self::WINDOW_SECONDS;
         $recent = array_filter(
-            $this->calls[$tenantId->value()][$operation->value] ?? [],
+            $this->calls[$tenantId->value()] ?? [],
             static fn(int $instant): bool => $instant > $windowStart,
         );
 
@@ -46,6 +47,6 @@ final class SlidingWindowRateLimiter implements RateLimiter
         }
 
         $recent[] = $now;
-        $this->calls[$tenantId->value()][$operation->value] = $recent;
+        $this->calls[$tenantId->value()] = $recent;
     }
 }
