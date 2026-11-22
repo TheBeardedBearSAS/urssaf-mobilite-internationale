@@ -6,9 +6,11 @@ the first release is in [docs/roadmap.md](docs/roadmap.md).
 
 ## Planned
 
-- **First release (0.1).** Implement the six operations of the URSSAF *API Mobilité internationale* (enrolment request,
-  list, detail and deletion, posting request within the EEA, mobility certificate download) following
-  [docs/roadmap.md](docs/roadmap.md): domain model, HTTP gateway, application handlers, Symfony bundle.
+- **First release (0.1).** The six operations of the URSSAF *API Mobilité internationale* (enrolment request, list,
+  detail and deletion, posting request within the EEA, mobility certificate download) are implemented: domain model,
+  HTTP gateway, application handlers, framework-free builder, simulator and Symfony bundle. What remains before the tag
+  is the sandbox confirmation below, the publication of the Flex recipe in `symfony/recipes-contrib` (with the agreement
+  of the maintainer) and the release notes. The architecture is described in [docs/roadmap.md](docs/roadmap.md).
 - **Run the contract tests against the real sandbox.** Execute the opt-in contract tests against the URSSAF sandbox,
   settle the open points of the [API reference](docs/api-reference.md) (section 5) as URSSAF confirms them (sandbox
   token host, enrolment life-cycle, certificate status codes), record fixtures stripped of personal data, and adjust
@@ -26,6 +28,6 @@ the first release is in [docs/roadmap.md](docs/roadmap.md).
 
 - Other URSSAF APIs: each one gets its own package (see *Other URSSAF packages* in the [README](README.md)).
 - Persisting postings, enrolments or personal data (NIR, names, addresses): the package is stateless
-  ([ADR 0001](docs/adr/0001-stateless-sdk.md), [ADR 0006](docs/adr/0006-personal-data.md)); a Doctrine bridge is
-  considered only to track technical identifiers.
+  ([ADR 0001](docs/adr/0001-stateless-sdk.md), [ADR 0006](docs/adr/0006-personal-data.md)) and has no Doctrine bridge;
+  bringing one back needs a new ADR ([ADR 0000](docs/adr/0000-reference-architecture.md) row 15).
 - Official bridges for other frameworks than Symfony: the core works without a framework.

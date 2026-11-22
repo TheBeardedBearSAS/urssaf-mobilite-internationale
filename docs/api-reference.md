@@ -20,7 +20,9 @@ two is listed in §2 (per operation) and §5. Field names, codes and wire values
 specification (they are French by design, and ASCII without accents in the Swagger); everything else in the package is
 English.
 
-> Status: specification only. Nothing below is implemented yet; see [roadmap.md](roadmap.md).
+> Status: **implemented** (not released). The six operations are implemented and tested; §4 records the decisions the
+> package took (settled by the [ADRs](adr/README.md)) and §5 the points that stay open until the sandbox or URSSAF settles
+> them. Architecture and remaining work: [roadmap.md](roadmap.md).
 
 > **Source and rights.** The specification, the field names, the codes and the official JSON examples quoted here come
 > from the URSSAF documents listed above and remain URSSAF's property. They are reproduced only so the package can
@@ -45,7 +47,7 @@ English.
 | Package configuration | `Infrastructure\Urssaf\Environment` maps `Sandbox` → `https://api-edi.urssaf.fr` and `Production` → `https://api.urssaf.fr`; `Infrastructure\Urssaf\UrssafEndpoints` holds `TOKEN_PATH` = `/api/oauth/v1/token`, `TOKEN_SCOPE` = `ods.dlagd`, `API_BASE_PATH` = `/tiersdecl/v1/mobilite`. The host must stay overridable by configuration. |
 | Gateway | The base path `/tiersdecl/v1` is shared with the other URSSAF "tiers déclarant" APIs (CESU, PAJE, auto-entrepreneur); only the last segment (`/mobilite`) and the scope differ. |
 | Content type | `application/json` (request and response), except `GET /certificat/{id}` which returns `application/pdf` on success. |
-| Headers | None declared in the Swagger (no header parameter, no required header). Besides `Authorization: Bearer <token>`, the package may send an optional `x-request-id` (UUID v4, as in the other URSSAF packages); this header is **not published** for this API. |
+| Headers | None declared in the Swagger (no header parameter, no required header). Besides `Authorization: Bearer <token>`, the package sends no other header by default; an optional request id header (name configurable, value a UUID per attempt) can be enabled, but no such header is **published** for this API. |
 | HTTP errors | 400 (functional), 401, 403 (declaration only, PDF), 404, 429 (quota, PDF), 500. The two sources do not agree per operation, see §2. |
 
 ### 1.1 Quotas (HTTP 429 when exceeded)
@@ -553,40 +555,70 @@ Also declared and unused: the global tag `GrandDeclarant`; `components.responses
    contract diff; the Swagger wins for shapes and codes, the PDF for functional meaning.
 2. **Contract is authoritative for paths.** Use `/declaration/detachement/UE` (Swagger + PDF diagram), not the PDF §4.5
    URL. TBD: confirm on the sandbox (§5).
-3. **Statuses of `GET /certificat/{id}`.** Model the result as a sum type `Available(pdf bytes)`, `InProgress`,
-   `RefusedOrUnknown`: 200 → available, 204 → in progress, 404 → refused/unknown, **400 → in progress when the body is a
-   functional error and the sandbox confirms the PDF**. TBD until observed; the raw HTTP status and error body are always
-   kept.
+3. **Statuses of `GET /certificat/{id}`** ([ADR 0003](adr/0003-certificate-result.md)). The result is a sum type
+   `CertificateAvailable` (200, PDF streamed), `CertificateInProgress` (204), `CertificateRefusedOrUnknown` (404).
+   **400 is "in progress" by default**: a package choice, not a spec rule (the PDF says so, the Swagger does not), settable
+   with `certificate.bad_request_as_in_progress: false` (bundle) or `GatewayOptions::withCertificateBadRequestAsInProgress()`,
+   in which case a 400 is an `UrssafRequestRejected`. The default stays until the sandbox shows what a 400 means (§5.5);
+   changing it comes with a changelog entry. The raw HTTP status and the parsed error body are always kept.
 4. **Enrolment lifecycle.** Domain `Enrolment` with `EnrolmentStatus` (`ACCEPTE`, `ENCOURS`, `REFUSE`, `SUPPRIME`,
    unknown values preserved raw). `Category` is an enum with a raw fallback; the PDF considers `categorie` mandatory so
    the package **requires it** on creation even though the Swagger does not.
-5. **Declaration only after acceptance.** The package does not check the enrolment status itself (403 is the server rule),
-   but exposes `listEnrolments()` / `getEnrolment()` so the caller can. TBD: optional guard.
-6. **Pagination.** `listEnrolments(offset, limit, sort?)` serialises `offset` / `limit` / `sort` as flat query
-   parameters. TBD: default `limit` and server maximum (not published); no total count is returned, so iteration
-   continues until a short page.
+5. **Declaration only after acceptance** ([ADR 0009](adr/0009-enrolments-and-pagination.md)). The server rule stays (403);
+   the package adds an **optional guard**, off by default: `SubmitPosting::afterCheckingEnrolment()` reads the enrolment
+   first and throws `EnrolmentNotAccepted` unless its status is `ACCEPTE` and its SIREN equals the `referenceEntreprise`
+   SIREN (the NIC is not compared). `SubmitPosting::of()` never checks.
+6. **Pagination** ([ADR 0009](adr/0009-enrolments-and-pagination.md)). `listEnrolments(offset, limit, sort?)` serialises
+   `offset` / `limit` / `sort` as flat query parameters; `offset` ≥ 0 and `limit` ≥ 1 are always sent, no maximum is
+   enforced, `sort` is sent verbatim. `ListEnrolments::firstPage()` and `urssaf:mi:enrolment:list` use **offset 0, limit
+   20: a package choice**, not a server default (none is published, §5.20). No total count is returned, so iteration
+   continues until a short page (`EnrolmentPage::isLastPage()` / `nextOffset()`).
 7. **Country values.** `Country` value object / enum over the 226 values (including `""` rejected locally); mapping to
    ISO codes is **not** published and is not done by the package.
 8. **Dates.** `date` fields as `DateTimeImmutable` formatted `Y-m-d`; `dateDemande` / `dateMiseAJour` parsed as ISO 8601
    with offset, tolerant of `Z`.
 9. **Tri-state answers.** `NC` / `OUI` / `NON` modelled as an enum `Answer` (`NotApplicable`, `Yes`, `No`); never mapped
    to a boolean.
-10. **Conditional rules are not guessed.** Local validation covers only what the Swagger states (required keys, lengths,
-    patterns, enums, `nombreJours` 1–31, `nombreJours` required when `teletravail` is true, `adresse` ignored when
-    `adresseConnue` is false or `adresseHabituelle` is true). Employee / self-employed rules are left to the server
-    until published (§5).
+10. **Conditional rules are not guessed** ([ADR 0008](adr/0008-local-validation.md)). Local validation covers only what
+    the Swagger states (required keys, lengths, patterns, enums, `nombreJours` 1–31, `nombreJours` required when
+    `teletravail` is true; `adresse` is omitted from the wire, without a violation, when `adresseConnue` is false or
+    `adresseHabituelle` is true). Every violation is reported at once (`ValidationFailed`). `declaration` and `declarant`
+    are typed as required although the Swagger leaves them optional (§5.13). The PDF-only telework rule (`accordSalarie`
+    and `pays` required when teleworking, §5.7) is **opt-in** (`PostingValidationPolicy::withPdfTeleworkRules()`, bundle
+    `validation.pdf_telework_rules`). Employee / self-employed rules, NIR key, SIREN Luhn, `dateDebut` ≤ `dateFin` and the
+    other rules the sources do not state are left to the server until published (§5.22).
 11. **Error parsing.** Accept an object, a list of objects, or an empty body (401 / 500 of the declaration). Keep `code`,
     `message`, `description` raw; no error code enum can be built (none published).
 12. **Personal data.** `nir`, `cleNir`, names, birth date and place, addresses, email, phone numbers are personal data:
     never logged, never put in exception messages or fixtures.
-13. **PDF download.** `GET /certificat/{id}` is binary: the HTTP layer must not decode it as JSON; expose the body as a
-    stream or string with the `Content-Type`. Memory limit TBD (size not published).
-14. **Quota.** 429 handled generically (retry policy as in the other URSSAF packages); the 200 requests/minute figure is
-    informational and not enforced client-side.
+13. **PDF download.** `GET /certificat/{id}` is binary: the HTTP layer does not decode it as JSON; the body is exposed as a
+    `BinaryStream` with the `Content-Type` and `Content-Disposition` when present ([ADR 0005](adr/0005-files.md)). The size
+    is not published and not capped by the package: set a response size limit on your PSR-18 client.
+14. **Quota** ([ADR 0000](adr/0000-reference-architecture.md) row 14). A 429 is an `UrssafUnavailable`
+    (`isQuotaExceeded()`, `Retry-After` kept when present) that is safe to repeat; the package itself never retries. The
+    200 requests/minute figure is global to the API and informational: the client-side limiter (`RateLimiter` port,
+    `SlidingWindowRateLimiter`, per tenant and operation, in the current process) is **opt-in** and off by default
+    (`rate_limiter.enabled`, `GatewayOptions::withRateLimiter()`); the sandbox quota is not published.
 
 ---
 
 ## 5. Open points
+
+None of these points has been confirmed against the real sandbox yet (opt-in contract tests exist, `make test-contract`).
+Where the package had to choose to work around a point, the choice is recorded in §4 and in the ADR it names; **the
+point stays open until URSSAF or the sandbox settles it**, and the choice is revisited then:
+
+| Point | Package choice while open | Where |
+|---|---|---|
+| 2 declaration path | The Swagger path `/declaration/detachement/UE` | §4.2 |
+| 3 `categorie` | Required by the package on creation | §4.4 |
+| 4, 20 pagination | Flat `offset` / `limit` / `sort`; `firstPage()` and the console command default to offset 0, limit 20 | §4.6, ADR 0009 |
+| 5 certificate statuses | 204 in progress, 404 refused or unknown, 400 in progress by default (configurable) | §4.3, ADR 0003 |
+| 7 telework | Swagger rule by default, PDF rule opt-in | §4.10, ADR 0008 |
+| 9 quota | Informational; opt-in client-side limiter | §4.14 |
+| 10 token host | Overridable `token_uri`; sandbox host assumed `https://api-edi.urssaf.fr/api/oauth/v1/token` | ADR 0002 |
+| 13 required-ness | `declaration` and `declarant` typed as required | §4.10 |
+| 22 per-profile rules | Not validated locally, left to the server | §4.10 |
 
 Swagger / PDF discrepancies (also noted in §2):
 
@@ -640,3 +672,15 @@ Missing information:
     the declaration.
 24. Sandbox: availability, test SIREN / enrolment auto-validation, test data (the enrolment normally needs a human
     validation on urssaf.fr).
+
+Found while implementing (not in the sources, so nothing is assumed):
+
+25. **Repeated deletion:** the answer of `DELETE /enrolements/{id}` on an enrolment already deleted (404, 400 or 200) is not
+    published. The package never resends a delete by itself and tells the caller to confirm with `GetEnrolment` (404 or
+    status `SUPPRIME`, [ADR 0004](adr/0004-unknown-outcome-and-retry.md)).
+26. **`Retry-After` and 429 body:** neither the header nor the body of a 429 is documented (§1.1). The package reads
+    `Retry-After` only as a number of seconds and ignores any other form ([ADR 0002](adr/0002-http-client-adaptations.md)).
+27. **Idempotency:** no operation has an idempotency key and none lists postings, so a posting whose answer is lost
+    cannot be reconciled through the API (`OutcomeUnknown`, [ADR 0004](adr/0004-unknown-outcome-and-retry.md)).
+28. **Request id header:** no header is published (§5.16). The package sends none by default; `headers.request_id`
+    (bundle) names an optional header carrying a UUID per attempt.

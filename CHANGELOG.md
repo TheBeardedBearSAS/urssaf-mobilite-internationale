@@ -17,6 +17,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   and a SLSA build provenance attestation (`*.intoto.jsonl`, Sigstore); see *Verifying a release* in SECURITY.md.
 - CodeQL analysis of the GitHub Actions workflows (workflow `codeql.yml`) on every pull request and push to `main`.
 
+- Domain model (`src/Domain`): enrolment (`Enrolment`, `EnrolmentId`, `Siren`, `Nic`, `EnrolmentPage`, `EnrolmentCategory`
+  and `EnrolmentStatus` keeping the raw wire value next to a nullable enum view), posting request (`PostingRequest` and
+  its value objects, closed lists, `PostingReceipt`, `DossierId`), `TenantId`, and cumulative validation of the
+  specification rules only (raw `*Draft` inputs read into a `PostingRequest`, every violation reported at once as
+  `ValidationFailed`; opt-in `PostingValidationPolicy::withPdfTeleworkRules()`). Personal data is never serialised and
+  masked in debug output (ADR 0006, 0008, 0011).
+- Application layer: `MobilityGateway` port and the six handlers (`RequestEnrolment`, `ListEnrolments`, `GetEnrolment`,
+  `DeleteEnrolment`, `SubmitPosting`, `GetCertificate`), `CertificateResult` (`CertificateAvailable` /
+  `CertificateInProgress` / `CertificateRefusedOrUnknown`, ADR 0003), the optional enrolment guard
+  `SubmitPosting::afterCheckingEnrolment()` (ADR 0009), typed failures including `OutcomeUnknown` for the two `POST`
+  operations (ADR 0004), and a certificate streamed and never buffered (ADR 0005).
+- OAuth2 client-credentials HTTP gateway over PSR-18 / PSR-17 (scope `ods.dlagd`, overridable `https` base and token URIs,
+  one replay after a 401, no other retry, binary PDF and empty 200 / 204 bodies, errors as object, list or empty),
+  token stores (in memory, PSR-6, PSR-16) and `InMemoryCredentialsProvider`; opt-in sliding-window rate limiter
+  (200 requests per minute, per tenant and operation); logs carry method, path, status and duration only (ADR 0002, 0007).
+- Framework-free `Standalone\UrssafMobiliteInternationaleBuilder` and `UrssafMobiliteInternationale` facade, and the
+  in-memory `Testing\SimulatedMobilityGateway` (refused for the production environment).
+- Opt-in sandbox contract tests (`make test-contract`, `tests/Contract`, manual CI job `contract`) and PHPBench
+  benchmarks (`make bench`, `tests/Benchmark`).
+- README: status, installation, standalone and Symfony quick starts, versioning and coexistence with the other URSSAF
+  packages; implemented state of `docs/api-reference.md`, `docs/roadmap.md`, `docs/standalone.md`, `docs/symfony.md`,
+  `docs/testing.md` and of the security assurance case.
 - Symfony bundle (`UrssafMobiliteInternationaleBundle`, alias `urssaf_mobilite_internationale`, Symfony 6.4, 7.x and 8.x,
   stateless: no Messenger, Lock, Scheduler nor Doctrine): configuration tree (environment, overridable `https` base and
   token URIs, environment-variable credentials, token cache pool, simulated gateway refused in production, certificate
