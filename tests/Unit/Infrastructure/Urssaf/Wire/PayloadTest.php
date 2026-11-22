@@ -60,6 +60,20 @@ final class PayloadTest extends TestCase
         static::assertSame('', JsonDecoder::decode('{"s": ""}')->string('s'));
     }
 
+    public function testItReadsNumbersDefensively(): void
+    {
+        $payload = JsonDecoder::decode('{"i": 3600, "z": 0, "s": "3600", "f": 1.5, "n": null, "b": true, "a": [1]}');
+
+        static::assertSame(3600, $payload->number('i'));
+        static::assertSame(0, $payload->number('z'));
+        static::assertSame(1.5, $payload->number('f'));
+        static::assertNull($payload->number('s'));
+        static::assertNull($payload->number('n'));
+        static::assertNull($payload->number('b'));
+        static::assertNull($payload->number('a'));
+        static::assertNull($payload->number('absent'));
+    }
+
     public function testItRequiresANonEmptyString(): void
     {
         static::assertSame('x', JsonDecoder::decode('{"s": "x"}')->requireString('s'));

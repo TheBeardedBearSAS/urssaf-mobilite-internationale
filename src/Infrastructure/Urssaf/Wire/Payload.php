@@ -65,6 +65,17 @@ final readonly class Payload
     }
 
     /**
+     * Number (integer or float) value of a key; null when absent, null or of another type (a numeric string is not a
+     * number).
+     */
+    public function number(string $key): int|float|null
+    {
+        $value = $this->data[$key] ?? null;
+
+        return \is_int($value) || \is_float($value) ? $value : null;
+    }
+
+    /**
      * @throws UnreadablePayload when the key is absent or its value is not a non-empty string
      */
     public function requireString(string $key): string

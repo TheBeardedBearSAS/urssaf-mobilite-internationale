@@ -25,7 +25,15 @@
     },
     "require": {
         "php": ">=8.2",
-        "ext-mbstring": "*"
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "psr/cache": "^2.0 || ^3.0",
+        "psr/clock": "^1.0",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.1",
+        "psr/http-message": "^1.1 || ^2.0",
+        "psr/log": "^2.0 || ^3.0",
+        "psr/simple-cache": "^2.0 || ^3.0"
     },
     "require-dev": {
         "carthage-software/mago": "^1.59",
