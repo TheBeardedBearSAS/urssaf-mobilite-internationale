@@ -19,6 +19,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Open-source silver level, aligned on the reference package: `GOVERNANCE.md`, `CODE_OF_CONDUCT.md`, `ROADMAP.md`,
+  security assurance case (`docs/security/assurance-case.md`), DCO sign-off (`bin/check-dco`, CI job `dco`),
+  documented test policy and code review in `CONTRIBUTING.md`, SPDX licence headers on every source file
+  (`bin/check-spdx`, `make guard`; PHP files through PHP CS Fixer `header_comment`), branch coverage of at least 96 %
+  (`make coverage-branches`, CI job `coverage-branches` on main, nightly and on demand), Deptrac layers `Standalone`
+  and `Testing`, and PHPStan always run on PHP 8.2 (ADR 0012).
 - Infection: `timeout` raised from 30 s to 180 s, and `make infection` and the CI job fail when a mutant is skipped (Infection never runs a mutant whose covering tests exceed the limit, yet reports MSI 100 %).
 - Infection: a timed-out mutant counts as escaped (`timeoutsAsEscaped`), and `make infection` and the CI job fail on any timed-out or syntax-error mutant: every mutant really runs and is killed.
 - CI: verifiable quality proofs (Codecov, Stryker Dashboard, SonarQube Cloud, OpenSSF Scorecard; active once the

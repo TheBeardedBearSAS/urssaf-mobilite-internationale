@@ -55,6 +55,7 @@ PHP 8.2+. Development only needs Docker: every `make` target runs in a container
 make install     # build the image, install dependencies
 make ci          # full quality gate: cs, rector, phpstan, mago, deptrac, composer checks, hadolint, guard, coverage, infection
 make test        # unit + functional tests
+make coverage-branches  # branch coverage (Xdebug, slow), at least 96 %
 make bench       # benchmarks (PHPBench, tests/Benchmark), added with the implementation
 make help        # every target
 ```

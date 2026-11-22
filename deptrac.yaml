@@ -16,6 +16,14 @@ deptrac:
       collectors:
         - type: directory
           value: src/Infrastructure/.*
+    - name: Testing
+      collectors:
+        - type: directory
+          value: src/Testing/.*
+    - name: Standalone
+      collectors:
+        - type: directory
+          value: src/Standalone/.*
     - name: SymfonyBridge
       collectors:
         - type: directory
@@ -50,10 +58,22 @@ deptrac:
       - Infrastructure
       - Doctrine
       - Psr
+    Testing:
+      - Domain
+      - Application
+      - Infrastructure
+    Standalone:
+      - Domain
+      - Application
+      - Infrastructure
+      - DoctrineBridge
+      - Doctrine
+      - Psr
     SymfonyBridge:
       - Domain
       - Application
       - Infrastructure
+      - Testing
       - DoctrineBridge
       - Symfony
       - Doctrine
