@@ -1,6 +1,6 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
-    # phpstan-strict-rules, -deprecation-rules, -phpunit, -symfony, -doctrine,
+    # phpstan-strict-rules, -deprecation-rules, -phpunit, -symfony,
     # shipmonk/phpstan-rules, ergebnis/phpstan-rules and tomasvotruba/type-coverage
     # are registered automatically by phpstan/extension-installer.
 
@@ -34,8 +34,8 @@ parameters:
                 - DomainException
                 - LogicException
                 - RuntimeException
+                - TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\DomainException
                 # Framework extension points without an interface alternative (bridges only).
-                - Doctrine\DBAL\Types\Type
                 - Symfony\Component\HttpKernel\Bundle\AbstractBundle
                 - Symfony\Component\Console\Command\Command
                 - Symfony\Component\HttpKernel\Kernel
@@ -52,4 +52,11 @@ parameters:
 
     shipmonkRules:
         enableAllRules: true
+
+    ignoreErrors:
+        # The PSR-7 test double implements StreamInterface::getMetadata(?string $key = null): the signature is imposed.
+        -
+            identifier: ergebnis.noParameterWithNullDefaultValue
+            path: tests/Unit/Infrastructure/Urssaf/Fake/StalledStream.php
+            count: 1
 

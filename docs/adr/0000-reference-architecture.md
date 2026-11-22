@@ -1,0 +1,57 @@
+# ADR 0000 — Reference architecture inherited from urssaf-tiers-prestations
+
+Status: Accepted (2026-11-22). Reference: `thebeardedbear/urssaf-tiers-prestations` (HEAD `ffec33f`): `deptrac.yaml`,
+the `src/` layout, `Infrastructure/Urssaf/Http/JsonApiClient.php`, `Infrastructure/Urssaf/ApiConfiguration.php`,
+`Domain/Validation`, `Domain/PaymentRequest/Input`; the summaries of the reference given in the sibling ADR 0000. Sibling
+precedents: `urssaf-attestations-verification-code-securite` (stateless, ADR 0000 / 0001),
+`urssaf-plateforme-numerique` (binary files, ADR 0002 / 0005), `urssaf-tierce-declaration-cesu` (Symfony bridge and
+coexistence, ADR 0013).
+
+## Context
+
+Every URSSAF package of the vendor shares one architecture, one set of conventions and one quality gate, so that
+integrators and maintainers move between them freely. This API ([api-reference](../api-reference.md)) has six
+operations: four on enrolments (create, list, read, delete), one posting declaration (`POST
+/declaration/detachement/UE`) and one binary download (`GET /certificat/{id}`, PDF). It publishes no error code, no
+payload example and a production quota of 200 requests per minute. The SDK is stateless ([ADR 0001](0001-stateless-sdk.md)).
+
+## Decision
+
+| # | Reference decision | Here | Justification |
+|---|---|---|---|
+| 1 | **Hexagonal layers enforced by Deptrac**: Domain depends on nothing; Application → Domain; Infrastructure → Application, Domain, Psr; Standalone, Testing, Symfony and Doctrine bridges on the periphery. | **Inherited** | Same rules as the stateless sibling. The `Standalone` and `Testing` layers are added to `deptrac.yaml` with the reference rules minus `Contract` (the skeleton lacks them): Testing → Domain, Application, Infrastructure; Standalone → Domain, Application, Infrastructure, DoctrineBridge, Doctrine, Psr; SymfonyBridge also → Testing. No `Contract` layer (no integration event, row 11). `Application` has no PSR access. |
+| 2 | **PSR-only runtime**: `require` = `php`, `ext-*`, `psr/*` interfaces; Symfony and Doctrine in `require-dev` + `suggest` with the reference `conflict` floors. Dependencies are added with the code that uses them. | **Inherited** | `ext-json`, `ext-mbstring`, `psr/http-client`, `psr/http-factory`, `psr/http-message`, `psr/clock`, `psr/log`, `psr/cache`, `psr/simple-cache`. No `psr/event-dispatcher` (row 11). |
+| 3 | **Value objects**: `final readonly`, private constructor, validating named constructors, `equals()`, stable violation codes `<subject>.<reason>`, English messages that never contain the rejected value. | **Inherited** | `EnrolmentId`, `Siren`, `Nic`, `CalendarDate`, `Instant`, `TenantId`, posting value objects ([ADR 0008](0008-local-validation.md)). |
+| 4 | **Validation (notification pattern)**: `Violation`, `ValidationResult`; raw `*Draft` inputs read by a `DraftReader` that turns each `InvalidValue` into a violation; result `CompleteDraft` \| `IncompleteDraft`; every violation thrown at once as `ValidationFailed`. | **Inherited** | The posting request has about sixty fields; rules limited to the specification ([ADR 0008](0008-local-validation.md)). |
+| 5 | **Sum types**: interface + `final readonly` variants; closed enums; unknown wire values kept raw next to a nullable typed view (`fromCode(): ?self`). | **Adapted** | `CertificateResult` = `CertificateAvailable` \| `CertificateInProgress` \| `CertificateRefusedOrUnknown`, placed in `Application\Port\Urssaf` because its variants carry a `DownloadedFile` and `ApiErrors` ([ADR 0003](0003-certificate-result.md)). Raw fallback only for values read from responses ([ADR 0009](0009-enrolments-and-pagination.md), [ADR 0011](0011-country-and-closed-lists.md)). |
+| 6 | **Errors**: markers `UrssafException`, `RetryableException`; abstract `DomainException` with `InvalidValue`, `InvariantViolation`, `RecordNotFound`, `ValidationFailed`; gateway exceptions `UrssafRequestRejected`, `UrssafAuthenticationFailed`, `UrssafUnavailable` (`mayHaveReachedUrssaf()`), `UnexpectedUrssafResponse`. | **Adapted** | Added: `UrssafResourceNotFound` (404 on a single resource, PN precedent) and `OutcomeUnknown` (unsafe writes, [ADR 0004](0004-unknown-outcome-and-retry.md)). `InvalidStateTransition` not applicable (no local state machine). |
+| 7 | **`ApiErrorCode` catalogue and `ErrorClassifier`** | **Not applicable** | No error code is published (api-reference §1.3, §5.19). Errors are classified by HTTP status only; `code` / `message` / `description` are kept raw in `ApiErrors`. |
+| 8 | **OAuth2 client credentials** (`OAuth2TokenProvider`, `TokenStore` PSR-6 / PSR-16 / in-memory, `CacheKey`, 60 s safety margin, one replay after a 401). | **Adapted** | Scope `ods.dlagd`; token URI overridable (sandbox token host not published, §5.10); cache key prefix `urssaf_mi.` over environment, base URI, token URI, scope and client id ([ADR 0007](0007-tenant-model.md)). |
+| 9 | **HTTP client** (`JsonApiClient`, `ApiRequest`, `ApiResponse`, `HttpTransport`, `RetryAfter`): JSON bodies, `x-request-id` always sent, `recouv.application.id` when configured. | **Adapted** | Binary PDF body, empty 200 / 204, `DELETE`, error body as object, list or empty; no `x-request-id` by default (optional header name), no `recouv.application.id`; overridden URIs must be `https` ([ADR 0002](0002-http-client-adaptations.md)). |
+| 10 | **Secrets and logs**: `Credentials` not serialisable, `#[SensitiveParameter]`, `__debugInfo()` masking; logs carry method, path, status, duration, request id only. | **Inherited** | Extended to the personal data of the posting request and to the certificate content ([ADR 0006](0006-personal-data.md), [ADR 0005](0005-files.md)). |
+| 11 | **Workflow, domain events, transactional outbox, integration events** (`UnitOfWork`, `EventPublisher` PSR-14, `Outbox`, `IntegrationEventSink`, `Contract\Event`). | **Not applicable** | Stateless SDK: nothing is recorded locally, so there is no state change to publish ([ADR 0001](0001-stateless-sdk.md)). No `docs/workflow.md`, no `docs/integration-events.md`. |
+| 12 | **Multi-tenant**: `TenantId` first argument of every gateway method and command; `CredentialsProvider::forTenant()` the only source of secrets. | **Inherited** | A tenant is one credential set; nothing else is resolved per tenant ([ADR 0007](0007-tenant-model.md)). |
+| 13 | **No internal retry / backoff**: the package classifies failures, the caller retries. | **Inherited** | The two `POST` operations are never resent; an uncertain outcome throws `OutcomeUnknown` ([ADR 0004](0004-unknown-outcome-and-retry.md)). |
+| 14 | **Client-side rate limiter** (`RateLimiter` port, sliding window per tenant and operation, configured from published quotas). | **Adapted** | `RateLimiter` port and `SlidingWindowRateLimiter` provided, one window per tenant (see Amendments), limit from the published 200 requests per minute. Opt-in and disabled by default, as in PAJE: the production quota is global to the API and informational (api-reference §4.14), and the sandbox quota is not published. 429 stays `UrssafUnavailable::isQuotaExceeded()`, `Retry-After` honoured when present. |
+| 15 | **Doctrine bridge** (XML mapping, DBAL types, outbox, dedicated entity manager). | **Not applicable** | Nothing to persist; personal data must never be persisted by the package (roadmap). The Deptrac `DoctrineBridge` layer and `src/Bridge/Doctrine/.gitkeep` stay; no `docs/doctrine.md`. |
+| 16 | **Symfony bundle**: `AbstractBundle`, `BundleConfiguration` + `ConfigurationRules`, `ServiceIds`, registrars, `#[AsCommand]` commands, `urssaf:…:check` with tagged `InstallationCheck`, translations en / fr, Flex recipe. | **Adapted** | No Messenger, Lock nor Scheduler (no background work); names, environment variables and the simulator guard of [ADR 0010](0010-symfony-bridge.md). |
+| 17 | **Standalone builder** and **Testing simulator**. | **Inherited** | `UrssafMobiliteInternationaleBuilder` (custom gateway refused in production, AE ADR 0015), `Testing\SimulatedMobilityGateway`. |
+| 18 | **Tests**: Unit (hand-written `Fake*` / `InMemory*` / `Fixed*` doubles, no mocks), Functional (`TestKernel`), Contract (opt-in on `URSSAF_SANDBOX_CLIENT_ID` / `SECRET`, `#[Group('contract')]`, outside coverage and Infection), PHPBench; `static::assert*()`, static data providers, random order. | **Adapted** | No official payload example: mappers are tested against payloads built in the tests from the contract constraints, with synthetic values only; `tests/Fixtures/wire/` stays empty until sandbox recordings stripped of personal data. Contract tests also read optional `URSSAF_SANDBOX_BASE_URI` / `URSSAF_SANDBOX_TOKEN_URI`. A cheap test checks that `mobi-prd.json` and `mobi-sb.json` differ only by `servers[0].url`. |
+| 19 | **Quality gate** `make ci`: cs, Rector, PHPStan max, Mago, Deptrac, composer checks, hadolint, guard, 100 % lines / methods / classes, MSI 100 % (Infection 180 s, skipped / timed-out / syntax-error mutants fail). Rule exceptions only when commented. | **Inherited** | PHPStan pinned to PHP 8.2 ([ADR 0012](0012-static-analysis-on-minimum-php.md)). Branch coverage job as in the siblings. |
+| 20 | **Money, decimals, ASCII transliteration, customers, pairing, invoices** (`Money`, `Decimal`, `AsciiNameNormalizer`, …). | **Not applicable** | No amount and no transliteration rule in this specification. |
+| 21 | **Language and version**: wire names, codes and values verbatim in French; everything else English. `SpecVersion::CURRENT` = version in the PDF file name. | **Inherited** | `SpecVersion::CURRENT` stays `1.0.0` (PDF), although the Swagger is 1.0.8 (api-reference header). |
+
+## Consequences
+
+- A reader of the reference finds the same layers, names and test layout. The adaptations are rows 5, 6, 8, 9, 14, 16 and
+  18; each has its own record except row 18, fully described here.
+- Rows 7, 11, 15 and 20 are dropped on purpose. Bringing one back (a published code catalogue, a tracking need, a
+  published sandbox quota) needs a new ADR.
+- Short slug `mi`: console `urssaf:mi:*`, environment `URSSAF_MI_*`, prefix `urssaf_mi`, bundle alias
+  `urssaf_mobilite_internationale`, PHP root namespace `TheBeardedBear\UrssafMobiliteInternationale`.
+
+## Amendments
+
+- **2026-11-22 (review).** Row 14: the published quota is 200 requests per minute for the whole API per client
+  ([api-reference](../api-reference.md) §1.1), not per operation. `SlidingWindowRateLimiter` therefore keeps ONE sliding
+  window per tenant, all operations together; the operation only names the refused call in `RateLimitExceeded`.

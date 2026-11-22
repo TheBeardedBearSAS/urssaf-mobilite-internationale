@@ -1,0 +1,56 @@
+# This file is part of thebeardedbear/urssaf-mobilite-internationale.
+#
+# Copyright (c) TheBeardedBear and the urssaf-mobilite-internationale contributors
+#
+# SPDX-License-Identifier: MIT
+
+# Messages of the violation codes of the package ("<subject>.<reason>"), domain "urssaf_mobilite_internationale".
+# Every shipped locale (urssaf_mobilite_internationale.fr.yaml...) has the same keys in the same order; override keys in
+# the translations/ directory of the application.
+
+"access_token.empty": "The access token is required."
+"access_token.negative_margin": "The access token expiry margin must not be negative."
+"activity_criterion.unknown": "The activity criterion is not one of the accepted values."
+"activity_nature.unknown": "The activity nature is not one of the accepted values."
+"activity_type.unknown": "The activity type is not one of the accepted values."
+"answer.unknown": "The answer is not one of the accepted values."
+"base_uri.invalid_format": "The base URI must match the expected format (%expected_format%)."
+"base_uri.not_https": "The base URI must use the https scheme."
+"calendar_date.invalid_date": "The date does not exist."
+"calendar_date.invalid_format": "The date does not match the expected format (%expected_format%)."
+"country.unknown": "The country is not one of the accepted values."
+"credentials.client_id_empty": "The OAuth2 client id is required."
+"credentials.client_secret_empty": "The OAuth2 client secret is required."
+"credentials.not_found": "No credentials are configured for this tenant."
+"days_per_month.out_of_range": "The number of days per month must be between %min% and %max%."
+"dossier_id.invalid_format": "The dossier identifier does not match the expected format (%expected_format%)."
+"email_address.invalid_format": "The email address does not match the expected format (%expected_format%)."
+"enrolment.not_accepted": "The enrolment does not allow a posting (reason: %reason%)."
+"enrolment_id.invalid_format": "The enrolment identifier does not match the expected format (%expected_format%)."
+"external_account_number.invalid_format": "The external account number does not match the expected format (%expected_format%)."
+"field.required": "This field is required."
+"instant.invalid_date": "The date and time do not exist."
+"instant.invalid_format": "The date and time do not match the expected format (%expected_format%)."
+"label.too_long": "The text must not exceed %max_length% characters."
+"limit.not_positive": "The limit must be at least 1."
+"nic.invalid_format": "The NIC does not match the expected format (%expected_format%)."
+"nic.invalid_length": "The NIC must be exactly %max_length% characters long."
+"nic.too_long": "The NIC must not exceed %max_length% characters."
+"nir.invalid_format": "The NIR does not match the expected format (%expected_format%)."
+"nir_key.invalid_format": "The NIR key does not match the expected format (%expected_format%)."
+"offset.negative": "The offset must not be negative."
+"phone_number.invalid_length": "The phone number must be between %min_length% and %max_length% characters long."
+"postal_code.too_long": "The postal code must not exceed %max_length% characters."
+"posting_receipt.empty": "The posting receipt holds no dossier."
+"request_id_header.invalid_format": "The request id header name does not match the expected format (%expected_format%)."
+"siren.invalid_format": "The SIREN does not match the expected format (%expected_format%)."
+"siren.invalid_length": "The SIREN must be exactly %max_length% characters long."
+"sort.empty": "The sort expression must not be empty."
+"tenant_id.empty": "The tenant id is required."
+"tenant_id.too_long": "The tenant id must not exceed %max_length% characters."
+"token_safety_margin.negative": "The token safety margin must not be negative."
+"token_uri.invalid_format": "The token URI must match the expected format (%expected_format%)."
+"token_uri.not_https": "The token URI must use the https scheme."
+"validation.failed": "The request does not satisfy the validation rules."
+"violation.invalid_code": "A violation code must be a dotted snake_case identifier such as \"subject.reason\"."
+"violation.invalid_path": "A violation path must be a dotted path such as \"worker.birthDate\"."

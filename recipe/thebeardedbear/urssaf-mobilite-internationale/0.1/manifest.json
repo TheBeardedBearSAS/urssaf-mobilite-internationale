@@ -1,0 +1,16 @@
+{
+    "bundles": {
+        "TheBeardedBear\\UrssafMobiliteInternationale\\Bridge\\Symfony\\UrssafMobiliteInternationaleBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "URSSAF API Mobilité internationale: sandbox or production, the OAuth2 credentials of the account, and the optional URIs overriding the API and the token endpoint (https only, empty: the URSSAF host of the environment)",
+        "URSSAF_MI_ENV": "sandbox",
+        "URSSAF_MI_CLIENT_ID": "",
+        "URSSAF_MI_CLIENT_SECRET": "",
+        "URSSAF_MI_BASE_URI": "",
+        "URSSAF_MI_TOKEN_URI": ""
+    }
+}
