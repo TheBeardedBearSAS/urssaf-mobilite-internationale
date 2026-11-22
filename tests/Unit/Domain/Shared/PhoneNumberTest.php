@@ -15,6 +15,7 @@ namespace TheBeardedBear\UrssafMobiliteInternationale\Tests\Unit\Domain\Shared;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\PersonalDataNotSerializable;
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Shared\PhoneNumber;
 
 final class PhoneNumberTest extends TestCase
@@ -74,5 +75,20 @@ final class PhoneNumberTest extends TestCase
 
         static::assertSame(['value' => '***'], $phone->__debugInfo());
         static::assertStringNotContainsString('0123456789', print_r($phone, true));
+    }
+
+    public function testCannotBeSerialized(): void
+    {
+        $value = PhoneNumber::fromString('0000000001');
+
+        $this->expectException(PersonalDataNotSerializable::class);
+        serialize($value);
+    }
+
+    public function testCannotBeUnserialized(): void
+    {
+        $this->expectException(PersonalDataNotSerializable::class);
+
+        unserialize(\sprintf('O:%d:"%s":1:{s:5:"value";s:1:"x";}', \strlen(PhoneNumber::class), PhoneNumber::class));
     }
 }

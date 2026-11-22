@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace TheBeardedBear\UrssafMobiliteInternationale\Domain\Posting;
 
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
+
 /**
  * Nature of an activity ("Nature" schema, api-reference §3.6). Backed by the wire values, verbatim; "TOUS" is part of the contract.
  */
@@ -31,4 +33,12 @@ enum ActivityNature: string
     case Etudiant = 'ETUDIANT';
     case Autre = 'AUTRE';
     case Tous = 'TOUS';
+
+    /**
+     * @throws InvalidValue "activity_nature.unknown" for any value not in the contract (the value is never repeated)
+     */
+    public static function fromWire(string $value): self
+    {
+        return self::tryFrom($value) ?? throw InvalidValue::because('activity_nature.unknown', 'Invalid activity nature: the value is not in the list of the contract.');
+    }
 }

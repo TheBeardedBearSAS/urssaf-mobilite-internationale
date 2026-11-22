@@ -15,6 +15,7 @@ namespace TheBeardedBear\UrssafMobiliteInternationale\Tests\Unit\Domain\Shared;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\PersonalDataNotSerializable;
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Shared\EmailAddress;
 
 final class EmailAddressTest extends TestCase
@@ -80,5 +81,20 @@ final class EmailAddressTest extends TestCase
 
         static::assertSame(['value' => '***'], $email->__debugInfo());
         static::assertStringNotContainsString('example.invalid', print_r($email, true));
+    }
+
+    public function testCannotBeSerialized(): void
+    {
+        $value = EmailAddress::fromString('test@example.invalid');
+
+        $this->expectException(PersonalDataNotSerializable::class);
+        serialize($value);
+    }
+
+    public function testCannotBeUnserialized(): void
+    {
+        $this->expectException(PersonalDataNotSerializable::class);
+
+        unserialize(\sprintf('O:%d:"%s":1:{s:5:"value";s:1:"x";}', \strlen(EmailAddress::class), EmailAddress::class));
     }
 }

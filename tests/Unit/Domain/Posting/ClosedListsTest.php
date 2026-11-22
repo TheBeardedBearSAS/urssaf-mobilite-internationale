@@ -79,6 +79,17 @@ final class ClosedListsTest extends TestCase
         static::assertSame(ActivityNature::Tous, ActivityNature::from('TOUS'));
     }
 
+    public function testFromWire(): void
+    {
+        static::assertSame(Answer::Yes, Answer::fromWire('OUI'));
+        static::assertSame(ActivityNature::Tous, ActivityNature::fromWire('TOUS'));
+        static::assertSame(ActivityCriterion::TempsTravail, ActivityCriterion::fromWire('TempsTravail'));
+        InvalidValueAssertions::assertThrows(static fn(): Answer => Answer::fromWire('oui'), 'answer.unknown', [], 'oui');
+        InvalidValueAssertions::assertThrows(static fn(): ActivityNature => ActivityNature::fromWire(''), 'activity_nature.unknown');
+        InvalidValueAssertions::assertThrows(static fn(): ActivityCriterion => ActivityCriterion::fromWire('Ca'), 'activity_criterion.unknown', [], 'Ca');
+        InvalidValueAssertions::assertThrows(static fn(): ActivityType => ActivityType::fromWire('autre'), 'activity_type.unknown', [], 'autre');
+    }
+
     public function testCriterionAndTypeCaseNames(): void
     {
         static::assertSame(ActivityCriterion::CA, ActivityCriterion::from('CA'));

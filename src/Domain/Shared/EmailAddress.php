@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace TheBeardedBear\UrssafMobiliteInternationale\Domain\Shared;
 
 use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\InvalidValue;
+use TheBeardedBear\UrssafMobiliteInternationale\Domain\Exception\PersonalDataNotSerializable;
 
 /**
  * E-mail address ("format: email" of the contract). Minimal shape only: exactly one "@", a non-empty local part and a
@@ -48,12 +49,30 @@ final readonly class EmailAddress
     }
 
     /**
-     * Personal data: masked in debug output (var_dump, print_r, dumpers). There is deliberately no __toString().
+     * Personal data: masked in debug output (var_dump, print_r, dumpers). There is deliberately no __toString(), and the object refuses to be serialized.
      *
      * @return array{value: string}
      */
     public function __debugInfo(): array
     {
         return ['value' => '***'];
+    }
+
+    /**
+     * Personal data must never be serialized (ADR 0006).
+     *
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        throw PersonalDataNotSerializable::create();
+    }
+
+    /**
+     * @param array<array-key, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        throw PersonalDataNotSerializable::create();
     }
 }

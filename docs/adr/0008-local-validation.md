@@ -16,7 +16,9 @@ the published contract wastes a call and a quota slot. Invented rules are forbid
   - each value object (`Siren`, `Nir`, `EmailAddress`, `PhoneNumber`, `CalendarDate`, `Country`, …) validates its
     own value in its named constructor and throws `InvalidValue` (first error only);
   - typed objects (`Worker`, `Telework`, `PostingRequest`, …) take value objects and enforce their cross-field rules
-    (`nombreJours` with `teletravail`) as `InvariantViolation`; a host that builds them directly gets the first error;
+    (`nombreJours` with `teletravail`) by signature (`Telework::withTelework` takes the number of days, so the
+    rule cannot be skipped) and as `InvariantViolation` for the other rules; a host that builds them directly gets the
+    first error. The draft reader reports the missing days as `field.required` at `…telework.daysPerMonth`;
   - the cumulative path is `Domain\Posting\Input`: nested `*Draft` classes of raw scalars (`PostingRequestDraft`,
     `WorkerDraft`, …) read by `PostingRequestReader::read(PostingRequestDraft, PostingValidationPolicy)` with the
     reference `DraftReader`, which turns every `InvalidValue` into a `Violation` at its field path and applies the
