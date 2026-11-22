@@ -24,7 +24,7 @@ Developed and maintained by [The Bearded Bear](https://the-bearded-bear.com).
 
 The six operations are implemented (domain model, OAuth2 HTTP gateway, application handlers, framework-free builder,
 in-memory simulator, Symfony bundle with `urssaf:mi:*` commands and a Flex recipe) and covered by unit and functional
-tests. The package is **not released yet**: no tag, not on Packagist, and the wire mapping has not been confirmed against
+tests. The first release is `0.1.0`; the wire mapping has not been confirmed against
 the real URSSAF sandbox, because the specification publishes no payload example (opt-in contract tests exist, see
 [Sandbox contract tests](#sandbox-contract-tests)). The open points are listed in
 [docs/api-reference.md](docs/api-reference.md) section 5 and the next steps in [ROADMAP.md](ROADMAP.md). Expect changes
@@ -56,8 +56,7 @@ composer require thebeardedbear/urssaf-mobilite-internationale
 
 The package requires PHP 8.2+ and PSR interfaces only (`psr/http-client`, `psr/http-factory`, `psr/http-message`,
 `psr/cache`, `psr/simple-cache`, `psr/clock`, `psr/log`). Bring your own PSR-18 client and PSR-17 factories, for instance
-`composer require symfony/http-client nyholm/psr7`. Until the first release is published, install it from the Git
-repository (Composer `vcs` repository).
+`composer require symfony/http-client nyholm/psr7`.
 
 ## Quick start (standalone, without Symfony)
 
@@ -225,7 +224,7 @@ environment (secrets for the credentials and the identifiers, repository variabl
 
 ## Versioning
 
-[Semantic Versioning](https://semver.org/). No version is released yet: until `1.0.0`, a minor release (`0.x`) may
+[Semantic Versioning](https://semver.org/). Until `1.0.0`, a minor release (`0.x`) may
 contain breaking changes, announced in the [changelog](CHANGELOG.md). `SpecVersion::CURRENT` holds the version of the
 official URSSAF documentation implemented (`1.0.0`, the published PDF; the OpenAPI contract is 1.0.8, see the reference).
 
